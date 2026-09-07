@@ -200,6 +200,98 @@ export default async function Page({
 
 Cite: Next.js docs — "Loading UI and Streaming", "Partial Prerendering".
 
+### 9.1 Skeleton the data, not the chrome (tables)
+
+A table's column header and pager are chrome, not data — they don't depend on the slow read, so don't
+let them sit inside the `<Suspense>` that wraps the rows.
+
+- **Keep `<thead>` and the pager in the static shell.** Only the `<tbody>` suspends. A client
+  sort-header component reads sort/direction off the URL itself (`useSearchParams`), so `<thead>` needs
+  no server props and can render synchronously — sorting is chrome-side state, not a data dependency.
+- **Give the pager its own `<Suspense>`**, reading the current page from the URL, so it stays mounted
+  and simply re-renders instead of flashing a fallback while rows stream in.
+- **Share one query promise between the rows and the pager.** Create the promise (uncalled/`await`-free)
+  once in the page shell and pass it to both the streamed body (for rows) and the pager's `<Suspense>`
+  boundary (for total count/page count) — two consumers of the same promise, one query.
+
+```tsx
+// ✅ header + pager are static; only <tbody> suspends
+// src/app/orders/page.tsx
+export default function Page({ searchParams }: { searchParams: Promise<{ page?: string; sort?: string }> }) {
+  const ordersPromise = getOrders(searchParams);  // created, not awaited — one query, two consumers
+
+  return (
+    <Col>
+      <table>
+        <SortableHead />                            {/* client component, reads sort from the URL */}
+        <Suspense fallback={<OrdersTableRowsSkeleton />}>
+          <OrdersTableBody ordersPromise={ordersPromise} />
+        </Suspense>
+      </table>
+      <Suspense fallback={<PagerSkeleton />}>
+        <OrdersPager ordersPromise={ordersPromise} />
+      </Suspense>
+    </Col>
+  );
+}
+```
+
+```tsx
+// ❌ skeletoning the whole table throws away static chrome you already have
+<Suspense fallback={<WholeTableSkeleton />}>
+  <OrdersTable searchParams={searchParams} />       {/* header + pager re-mount on every load */}
+</Suspense>
+```
+
+### 9.2 Tabs must not round-trip
+
+URL-synced tabs whose panels are **all already mounted** (no data dependency per tab, just visibility)
+switch client-side only. Use `window.history.replaceState` + local state to update the URL, **not**
+`router.replace`/`router.push` — the router call re-enters the Next.js Router and triggers a server
+re-render / refetch of the segment, which makes a same-page tab switch feel like a full navigation.
+
+Next.js docs — "Native History API" (`Linking and Navigating`): `pushState`/`replaceState` calls
+integrate into the Next.js Router, so `usePathname`/`useSearchParams` stay in sync without going through
+`router.push`/`router.replace`.
+
+```tsx
+'use client';
+// ✅ URL reflects the active tab, no server round-trip
+function switchTab(tab: string) {
+  const params = new URLSearchParams(searchParams.toString());
+  params.set('tab', tab);
+  window.history.replaceState(null, '', `?${params.toString()}`);
+  setActiveTab(tab); // local state drives which mounted panel is visible
+}
+```
+
+```tsx
+// ❌ re-enters the router — triggers a server re-render for a client-only visibility change
+function switchTab(tab: string) {
+  router.replace(`?tab=${tab}`); // feels slow: refetches/rerenders the segment
+}
+```
+
+Only reach for `router.replace`/`router.push` when the tab switch has a genuine, uncached data
+dependency the current page hasn't fetched yet (e.g. server-rendered panels loaded on demand) — not for
+switching between already-mounted panels.
+
+### 9.3 No unfriendly native `<select>`
+
+Prefer the project's searchable select component over a raw browser `<select>` for user-facing choices
+— a native `<select>` doesn't filter/search and renders inconsistently across platforms. Wire it into
+`react-hook-form` via `Controller`, not `register` (a custom component isn't a native form field):
+
+```tsx
+<Controller
+  name="status"
+  control={control}
+  render={({ field }) => (
+    <SearchableSelect options={statusOptions} value={field.value} onChange={field.onChange} />
+  )}
+/>
+```
+
 ## Checklist
 
 - [ ] `app/` files are thin; logic in `_modules/pages/`
@@ -209,6 +301,11 @@ Cite: Next.js docs — "Loading UI and Streaming", "Partial Prerendering".
 - [ ] Static shell renders synchronously; dynamic reads live behind a data-shaped `<Suspense>`, not a
       whole-page `loading.tsx` (§9)
 - [ ] No root `app/loading.tsx` over a redirect-only `app/page.tsx` (deadlocks every route)
+- [ ] Table `<thead>` + pager stay static; only `<tbody>` suspends, on a shared query promise (§9.1)
+- [ ] URL-synced tabs over already-mounted panels use `window.history.replaceState`, not
+      `router.replace`/`router.push` (§9.2)
+- [ ] User-facing choice fields use the project's searchable select via `Controller`, not a raw
+      `<select>` (§9.3)
 - [ ] Params via `next/navigation` or props, never `next/router`
 - [ ] Mutations via Zod-validated, auth-checked Server Actions + `revalidatePath` / `revalidateTag`
 - [ ] Shared rules from `ai/shared-fe/` applied
