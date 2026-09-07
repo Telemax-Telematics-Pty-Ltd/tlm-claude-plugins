@@ -95,7 +95,8 @@ export async function createProduct(formData: FormData) {
   `{ next: { revalidate: N, tags: [...] } }`.
 - Hybrid: fetch initial data in a Server Component, hydrate a Client Component's TanStack Query for
   interactivity. See `04-data-fetching.md`.
-- Stream with `loading.tsx` / `<Suspense>`; handle errors with `error.tsx`.
+- Stream with `loading.tsx` / `<Suspense>`; handle errors with `error.tsx`. See §9 for the shell-vs-`Suspense`
+  split — a whole-page `loading.tsx` is usually the wrong tool.
 
 ## 6. Route handlers (`route.ts`) — only for real HTTP endpoints
 
@@ -119,7 +120,9 @@ Shared headers/nav belong in `layout.tsx`, not per-page. A `'use client'` `Globa
 
 A screen isn't done with only the happy path. Before calling any screen/route finished:
 
-- New route segment → ships `loading.tsx` + `error.tsx` (streaming fallback + error boundary)
+- New route segment → ships `error.tsx` always. Ship `loading.tsx` only when the segment's shell
+  genuinely cannot be static (§9) — the default is a synchronous shell with per-region `<Suspense>`,
+  not a segment-level loading fallback.
 - **Do NOT add a root `app/loading.tsx` when `app/page.tsx` only redirects.** It wraps the entire app
   in a Suspense boundary, and if nothing resolves it every route paints the skeleton forever and no
   page is reachable — the DOM shows an unresolved `<template id="B:0">` under the fallback. The
@@ -131,12 +134,80 @@ A screen isn't done with only the happy path. Before calling any screen/route fi
 - Forms/actions → pending UI via `useFormStatus` / `useActionState`: disabled submit, optimistic update
   or skeleton refresh
 
+## 9. Stream data, not the page — no whole-page loading skeletons (MUST)
+
+- **Render the static shell synchronously and immediately.** Page/layout components return their
+  header, nav, tabs and other static chrome without `await`ing anything first. Awaiting dynamic data
+  at the top of a page/layout opts the **whole route** into dynamic rendering and blocks first paint —
+  the user waits on the slowest read to see chrome that never depended on it.
+- **Wrap only the region that reads dynamic data** — `searchParams`, `cookies()`, an uncached DB/API
+  read, a record by id — in its own `<Suspense fallback={<DataShapedSkeleton />}>`. Shape the skeleton
+  like the data it stands in for (a table skeleton for a table, cards for cards, a detail skeleton for
+  a detail pane). Never a full-page skeleton — it throws away the static shell you already have.
+- **Move the slow read into a co-located async child** (e.g. `orders-table.tsx`) that the synchronous
+  page renders inside the `Suspense` boundary, passing the `searchParams`/`params` **promise** down —
+  the child `await`s it, not the page.
+- A synchronous shell means the route segment never suspends at the top level, so a whole-page
+  `loading.tsx` is not merely unneeded, it is **harmful**: it hides the static chrome on every
+  navigation into the segment. Remove it. Keep `loading.tsx` only where the shell genuinely cannot be
+  static (e.g. a public page rendered entirely from uncached settings) — same failure mode as the root
+  `app/loading.tsx` warning in §8, one level down.
+- **With Cache Components / PPR** (`cacheComponents: true` in `next.config`): data read via `use cache`
+  is part of the static shell (prerenderable) and is fine to `await` directly in the shell.
+  `searchParams`, `cookies()`, and any uncached read stay dynamic and MUST sit behind `<Suspense>`.
+- **For a searchParams-driven list**, key the inner `<Suspense>` (or its child) on the client's
+  `useSearchParams()` value (e.g. `key={searchParams.toString()}`) so switching a tab/page/filter shows
+  the skeleton instantly instead of leaving stale rows on screen while the new read resolves.
+
+```tsx
+// ✅ shell renders immediately; only the table suspends
+// src/app/orders/page.tsx
+export default function Page({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string }>;
+}) {
+  return (
+    <Col>
+      <OrdersHeader />                              {/* static chrome, no await */}
+      <OrdersTabs />
+      <Suspense fallback={<OrdersTableSkeleton />}>
+        <OrdersTable searchParams={searchParams} /> {/* async child does the read */}
+      </Suspense>
+    </Col>
+  );
+}
+```
+
+```tsx
+// ❌ awaiting at the top blocks the whole shell behind one skeleton
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string }>;
+}) {
+  const { status } = await searchParams;
+  const orders = await getOrders(status);   // whole route now dynamic
+  return (
+    <Col>
+      <OrdersHeader />
+      <OrdersTabs />
+      <OrdersTableView orders={orders} />
+    </Col>
+  );                                          // loading.tsx paints a full-page skeleton meanwhile
+}
+```
+
+Cite: Next.js docs — "Loading UI and Streaming", "Partial Prerendering".
+
 ## Checklist
 
 - [ ] `app/` files are thin; logic in `_modules/pages/`
 - [ ] `'use client'` only where hooks/interactivity are needed, pushed to the leaves
 - [ ] No `Date.now()` / `new Date()` / `Math.random()` during render (hydration)
-- [ ] States shipped: `loading.tsx` / `error.tsx`, shared empty state, pending UI on forms
+- [ ] States shipped: `error.tsx`, shared empty state, pending UI on forms
+- [ ] Static shell renders synchronously; dynamic reads live behind a data-shaped `<Suspense>`, not a
+      whole-page `loading.tsx` (§9)
 - [ ] No root `app/loading.tsx` over a redirect-only `app/page.tsx` (deadlocks every route)
 - [ ] Params via `next/navigation` or props, never `next/router`
 - [ ] Mutations via Zod-validated, auth-checked Server Actions + `revalidatePath` / `revalidateTag`
