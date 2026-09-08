@@ -24,6 +24,8 @@ ai/
 │   ├── 14-e2e-testing.md        # Playwright: the no-failing-request sweep + declared refusals
 │   ├── 15-zod-contract-first.md # Schemas are the source of truth; responses parsed, never `as T`
 │   └── 16-monorepo-turborepo.md # Multi-app products: Turborepo, apps/* + packages/contracts
+├── shared-be/                   # Cross-stack backend rules (Prisma, EF Core, any ORM)
+│   └── 01-avoid-n-plus-1-queries.md # Load related data in one round-trip; no query-per-item loops
 ├── vendor/
 │   └── ECC-ADOPTION.md          # everything-claude-code review: provenance + what we turned off
 ├── templates/                   # Requirement-intake templates
