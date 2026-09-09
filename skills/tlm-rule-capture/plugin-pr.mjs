@@ -31,8 +31,8 @@
 // Config comes from env (tlm-rule-capture exports these from tlm.pluginRepo; each has
 // a default matching setup/tlm-config.reference.json):
 //   TLM_VENDOR_DIR      .claude/tlm-plugin        (repo-relative or absolute)
-//   TLM_UPSTREAM_REMOTE git@github.com-hbl:ToanHBL/tlm-claude-plugins.git
-//   TLM_OWNER_REPO      ToanHBL/tlm-claude-plugins
+//   TLM_UPSTREAM_REMOTE git@github.com-hbl:Telemax-Telematics-Pty-Ltd/tlm-claude-plugins.git
+//   TLM_OWNER_REPO      Telemax-Telematics-Pty-Ltd/tlm-claude-plugins
 //   TLM_BASE            develop
 //   TLM_BUMP            patch | minor | major
 //   TLM_PR_MODE         gh | compare-url   (default gh, falls back to compare-url)
@@ -46,8 +46,8 @@ import { spawnSync } from 'node:child_process'
 
 const env = process.env
 const VENDOR_DIR = env.TLM_VENDOR_DIR || '.claude/tlm-plugin'
-const UPSTREAM = env.TLM_UPSTREAM_REMOTE || 'git@github.com-hbl:ToanHBL/tlm-claude-plugins.git'
-const OWNER_REPO = env.TLM_OWNER_REPO || 'ToanHBL/tlm-claude-plugins'
+const UPSTREAM = env.TLM_UPSTREAM_REMOTE || 'git@github.com-hbl:Telemax-Telematics-Pty-Ltd/tlm-claude-plugins.git'
+const OWNER_REPO = env.TLM_OWNER_REPO || 'Telemax-Telematics-Pty-Ltd/tlm-claude-plugins'
 const BASE = env.TLM_BASE || 'develop'
 const BUMP = env.TLM_BUMP || 'patch'
 const PR_MODE = env.TLM_PR_MODE || 'gh'

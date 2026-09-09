@@ -139,7 +139,7 @@ never seen by the team. So since **v2.5.0** a consuming project keeps its own co
 6. **Ship** — `plugin-pr.mjs open <slug>` clones the upstream (`tlm.pluginRepo`), mirrors the subtrees
    onto `rule/<slug>`, **bumps the version in lockstep** across the three manifest fields, pushes, and
    opens the PR with `gh` (`prMode` default; falls back to printing a compare URL). Upstream and base
-   default to `ToanHBL/tlm-claude-plugins` / `develop`. It never touches `${CLAUDE_PLUGIN_ROOT}`.
+   default to `Telemax-Telematics-Pty-Ltd/tlm-claude-plugins` / `develop`. It never touches `${CLAUDE_PLUGIN_ROOT}`.
 
 The config contract is `tlm.pluginRepo` in `setup/tlm-config.reference.json`.
 

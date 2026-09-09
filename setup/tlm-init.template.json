@@ -163,7 +163,7 @@
     "pluginRepo": {
       "enabled": true,
       "upstreamRemote": "<<FILL: git URL of the plugin upstream that works on their machine>>",
-      "ownerRepo": "ToanHBL/tlm-claude-plugins",
+      "ownerRepo": "Telemax-Telematics-Pty-Ltd/tlm-claude-plugins",
       "baseBranch": "develop",
       "vendorDir": ".claude/tlm-plugin",
       "prMode": "gh",

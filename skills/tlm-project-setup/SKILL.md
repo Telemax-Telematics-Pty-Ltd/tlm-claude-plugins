@@ -528,8 +528,8 @@ Merge into the existing file — **preserve keys you didn't touch** (`permission
 - If PHASE 0.4 found an `openspec/` directory, set
   `tlm.specDriven = { "engine": "openspec", "mode": "ask-per-ticket", "announceCommands": true }`.
 - If PHASE 1.5 installed the rules copy (the default), set `tlm.pluginRepo = { "enabled": true,
-  "upstreamRemote": "git@github.com-hbl:ToanHBL/tlm-claude-plugins.git", "ownerRepo":
-  "ToanHBL/tlm-claude-plugins", "baseBranch": "develop", "vendorDir": ".claude/tlm-plugin", "prMode":
+  "upstreamRemote": "git@github.com-hbl:Telemax-Telematics-Pty-Ltd/tlm-claude-plugins.git", "ownerRepo":
+  "Telemax-Telematics-Pty-Ltd/tlm-claude-plugins", "baseBranch": "develop", "vendorDir": ".claude/tlm-plugin", "prMode":
   "gh", "bump": "patch" }` (see `tlm-config.reference.json` → `tlm.pluginRepo`). If the user opted out,
   set `{ "enabled": false }`. **`upstreamRemote` may be an SSH host alias that only exists in the
   original author's `~/.ssh/config`** — if `plugin-pr.mjs preflight` cannot reach it, ask the user for

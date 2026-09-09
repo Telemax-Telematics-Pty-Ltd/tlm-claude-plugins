@@ -150,8 +150,8 @@ RULES=".claude/tlm-plugin"; [ -d "$RULES" ] || RULES="${CLAUDE_PLUGIN_ROOT}"
 # Export config from tlm.pluginRepo (each has a default; read the block from
 # .claude/settings.local.json). Then:
 export TLM_VENDOR_DIR="$(pwd)/.claude/tlm-plugin"     # tlm.pluginRepo.vendorDir
-export TLM_UPSTREAM_REMOTE="git@github.com-hbl:ToanHBL/tlm-claude-plugins.git"  # .upstreamRemote
-export TLM_OWNER_REPO="ToanHBL/tlm-claude-plugins"    # .ownerRepo
+export TLM_UPSTREAM_REMOTE="git@github.com-hbl:Telemax-Telematics-Pty-Ltd/tlm-claude-plugins.git"  # .upstreamRemote
+export TLM_OWNER_REPO="Telemax-Telematics-Pty-Ltd/tlm-claude-plugins"    # .ownerRepo
 export TLM_BASE="develop"                             # .baseBranch
 export TLM_BUMP="patch"                               # .bump
 export TLM_PR_MODE="gh"                               # .prMode  (falls back to a compare URL)

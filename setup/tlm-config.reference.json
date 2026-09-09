@@ -577,15 +577,15 @@
         "type": "string",
         "required": "when enabled",
         "description": "Git push URL of the plugin's canonical upstream. A fresh checkout is cloned from here to build the PR branch — NEVER ${CLAUDE_PLUGIN_ROOT}.",
-        "default": "git@github.com-hbl:ToanHBL/tlm-claude-plugins.git",
-        "example": "git@github.com-hbl:ToanHBL/tlm-claude-plugins.git"
+        "default": "git@github.com-hbl:Telemax-Telematics-Pty-Ltd/tlm-claude-plugins.git",
+        "example": "git@github.com-hbl:Telemax-Telematics-Pty-Ltd/tlm-claude-plugins.git"
       },
       "ownerRepo": {
         "type": "string",
         "required": "when enabled",
         "description": "<owner>/<repo> on GitHub, used only to build the browser compare URL (https://github.com/<ownerRepo>/compare/...). Derived from upstreamRemote when omitted.",
-        "default": "ToanHBL/tlm-claude-plugins",
-        "example": "ToanHBL/tlm-claude-plugins"
+        "default": "Telemax-Telematics-Pty-Ltd/tlm-claude-plugins",
+        "example": "Telemax-Telematics-Pty-Ltd/tlm-claude-plugins"
       },
       "baseBranch": {
         "type": "string",

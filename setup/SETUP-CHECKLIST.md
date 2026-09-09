@@ -250,7 +250,7 @@ the repo.
       **immediately** here; the `vendor-watch` hook then reminds Claude to ship it.
 - [ ] **Review before shipping** — `node .claude/tlm-plugin/skills/tlm-rule-capture/plugin-pr.mjs diff`
       prints exactly what a PR would change upstream. Nothing is written or pushed. Read it.
-- [ ] **Ship it** — `… plugin-pr.mjs open <slug>` clones the upstream (`ToanHBL/tlm-claude-plugins`, base
+- [ ] **Ship it** — `… plugin-pr.mjs open <slug>` clones the upstream (`Telemax-Telematics-Pty-Ltd/tlm-claude-plugins`, base
       `develop`), mirrors this copy onto `rule/<slug>`, bumps the version in lockstep, pushes, and opens
       the PR with `gh` (compare URL if `gh` is absent). Teammates get it after they run
       `/plugin marketplace update`.

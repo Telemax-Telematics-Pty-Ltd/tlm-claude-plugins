@@ -123,8 +123,8 @@
     ],
     "pluginRepo": {
       "enabled": true,
-      "upstreamRemote": "git@github.com-hbl:ToanHBL/tlm-claude-plugins.git",
-      "ownerRepo": "ToanHBL/tlm-claude-plugins",
+      "upstreamRemote": "git@github.com-hbl:Telemax-Telematics-Pty-Ltd/tlm-claude-plugins.git",
+      "ownerRepo": "Telemax-Telematics-Pty-Ltd/tlm-claude-plugins",
       "baseBranch": "develop",
       "vendorDir": ".claude/tlm-plugin",
       "prMode": "gh",
