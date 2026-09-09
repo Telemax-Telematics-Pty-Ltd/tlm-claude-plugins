@@ -15,6 +15,21 @@ set -uo pipefail
 
 INPUT=$(cat)
 
+# --- Opt-out: skip the gate without deleting the hook ----------------------
+# Teams (or repos) that do not use the worktree workflow can neutralise this
+# gate two ways; either makes the rest of the script a no-op:
+#
+#   * export Z_HARNESS_AUTO_WORKTREE=off  -- set before launching Claude Code so
+#     the hook process inherits it. Best when a machine never wants the gate.
+#   * touch <main-tree root>/.z-harness-allow-main-tree  -- a per-repo marker,
+#     re-read on every call, so it takes effect immediately with no session
+#     restart (Claude Code re-executes this script each call; only the
+#     hooks.json registration is cached). Best for "just this repo, for now".
+#
+# The env switch is checked here because it costs nothing before any subprocess;
+# the marker is checked after ROOT is resolved below, reusing that computation.
+if [[ "${Z_HARNESS_AUTO_WORKTREE:-on}" == "off" ]]; then exit 0; fi
+
 # Fast bail, before any subprocess: a payload with neither a path nor a command cannot write anything.
 #
 # Costs nothing today and is here for what it unblocks. settings.json still matches a list of tool
@@ -67,6 +82,11 @@ ROOT=$(git rev-parse --git-common-dir 2>/dev/null || true)
 [[ "$ROOT" = /* ]] || ROOT="$PWD/${ROOT#./}"
 ROOT="${ROOT%/.git}"
 [[ -n "$ROOT" && -d "$ROOT" ]] || ROOT="$PWD"
+
+# Per-repo opt-out marker (see the header note). Reuses ROOT, so it is placed
+# here rather than up top. Untracked by design -- add it to .git/info/exclude or
+# .gitignore so the escape hatch never rides along in a commit.
+[[ -f "$ROOT/.z-harness-allow-main-tree" ]] && exit 0
 
 # Every path this call would write, one per line.
 TARGETS=""
