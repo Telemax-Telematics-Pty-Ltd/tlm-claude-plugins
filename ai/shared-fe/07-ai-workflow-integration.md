@@ -510,6 +510,8 @@ When working in this project, keep in mind:
 - [ ] Responsive + accessible (ARIA) markup — semantic elements and ARIA/HTML attributes live inside `Base*` primitives (e.g. `BaseTable`, `BaseForm`), never as raw markup in screens
 - [ ] Uses established utility functions (`UtilsForm`, `joinTextNoSpace`, etc.)
 - [ ] Strings wrapped in `t()` for i18n
+- [ ] Code identifiers, comments and committed file content are in **English** — the chat language never
+      leaks into the artifact (conversation language ≠ artifact language) — see `18-working-language.md`
 - [ ] **Every pressable element has its affordances** — see §9a. Tailwind v4 does NOT give a
       `<button>` a pointer cursor; you have to ask for it
 - [ ] **No destructuring inside a function body** — see §9b. Props are the exception and stay

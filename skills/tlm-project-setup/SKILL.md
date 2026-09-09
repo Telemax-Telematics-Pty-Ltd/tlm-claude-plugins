@@ -22,7 +22,9 @@ Everything lands in `<project>/.claude/settings.local.json` — the Claude Code 
 machine-local, gitignored config. Nothing is written to a committed file.
 
 > **Working language:** English for written config and file content, regardless of the language the user
-> triggers in. Match the user's language when talking to them.
+> triggers in. Match the user's language when talking to them — and if they explicitly ask for a
+> conversation language, persist it to Claude's memory as their default and honor it in later sessions.
+> Full rule (conversation vs. artifact, what stays English): `ai/shared-fe/18-working-language.md`.
 
 **Rules root.** Everything this skill reads or runs — `setup/`, the helper scripts — resolves against the
 **rules root**: `<project>/.claude/tlm-plugin/` if it exists, else `${CLAUDE_PLUGIN_ROOT}`. The first is

@@ -23,7 +23,9 @@ ai/
 │   ├── 13-mock-data.md          # Label what isn't wired yet; grep -rn MOCK finds every site
 │   ├── 14-e2e-testing.md        # Playwright: the no-failing-request sweep + declared refusals
 │   ├── 15-zod-contract-first.md # Schemas are the source of truth; responses parsed, never `as T`
-│   └── 16-monorepo-turborepo.md # Multi-app products: Turborepo, apps/* + packages/contracts
+│   ├── 16-monorepo-turborepo.md # Multi-app products: Turborepo, apps/* + packages/contracts
+│   ├── 17-email-templates.md    # Transactional email markup + tokens
+│   └── 18-working-language.md   # Conversation language (per-user, memory) vs. artifact language (English)
 ├── shared-be/                   # Cross-stack backend rules (Prisma, EF Core, any ORM)
 │   └── 01-avoid-n-plus-1-queries.md # Load related data in one round-trip; no query-per-item loops
 ├── vendor/
