@@ -95,7 +95,7 @@ This repo is both the plugin and its marketplace, so you add it once and install
 Inside a Claude Code session:
 
 ```
-/plugin marketplace add https://github.com/ToanHBL/tlm-claude-plugins
+/plugin marketplace add https://github.com/Telemax-Telematics-Pty-Ltd/tlm-claude-plugins
 /plugin install tlm-claude-plugins@tlm-claude-plugins
 ```
 
@@ -107,7 +107,7 @@ The `/plugin` dialog needs an interactive terminal, so from the desktop app use 
 in any terminal instead — it writes the same config the dialog does:
 
 ```bash
-claude plugin marketplace add https://github.com/ToanHBL/tlm-claude-plugins
+claude plugin marketplace add https://github.com/Telemax-Telematics-Pty-Ltd/tlm-claude-plugins
 ```
 
 ```bash
