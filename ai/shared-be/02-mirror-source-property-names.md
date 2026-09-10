@@ -5,11 +5,16 @@
 > backend rule — EF Core (.NET), Prisma (Next.js API), TypeORM, plain mappers. The backend counterpart to
 > `ai/shared-fe/`.
 
-**Rule:** when a property passes a value through unchanged, name it after the **source field**, not a
-re-worded synonym. If the source is `IsEngineStarted`, the carrier is `IsEngineStarted` — not `IsEngineOn`.
-If the source is `EngineCoolantTemp`, the carrier is `EngineCoolantTemp` — not `EngineTemp`. Rename only
-when you genuinely **transform** the value (aggregate, derive, change meaning); a straight pass-through
-keeps the source's name.
+**Rule (MUST):** a carrier property **MUST NOT re-word** the name of the value it carries. When a property
+passes a value through unchanged, name it after the **source field**, not a re-worded synonym. If the
+source is `IsEngineStarted`, the carrier is `IsEngineStarted` — not `IsEngineOn`. If the source is
+`EngineCoolantTemp`, the carrier is `EngineCoolantTemp` — not `EngineTemp`. Rename only when you genuinely
+**transform** the value (aggregate, derive, change meaning); a straight pass-through keeps the source's name.
+
+**And keep the sibling's stem.** When the type already exposes a related property for the same concept, a
+new companion **MUST** keep that established stem, not drop it. A message that already has `AlertRuleName`
+gets `AlertRuleId` for the rule's id — **never** a stem-dropped `RuleId`. Half-renamed siblings
+(`AlertRuleName` beside `RuleId`) read as two different things and break `grep AlertRule`.
 
 **Why (the failure it prevents):** a re-worded pass-through desyncs two names for one value. Three costs:
 
@@ -49,6 +54,20 @@ new LowBatteryVoltageAlertMessage {
 
 ```ts
 return { isEngineStarted: row.isEngineStarted, engineCoolantTemp: row.engineCoolantTemp };
+```
+
+### Sibling stem — the id companion of a named property
+
+```csharp
+// ❌ The message already exposes AlertRuleName; a stem-dropped id companion desyncs the pair.
+public string? AlertRuleName { get; set; }
+public int?    RuleId        { get; set; }        // ← drops "AlertRule"; grep AlertRule misses it
+result.RuleId = snapshot.Alert.Id;
+
+// ✅ Keep the sibling's stem.
+public string? AlertRuleName { get; set; }
+public int?    AlertRuleId   { get; set; }        // sibling of AlertRuleName — one vocabulary, grep-able
+result.AlertRuleId = snapshot.Alert.Id;
 ```
 
 ---
