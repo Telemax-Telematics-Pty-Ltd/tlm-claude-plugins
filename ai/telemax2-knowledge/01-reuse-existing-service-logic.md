@@ -24,28 +24,38 @@ Dashboard.Server, …) already has. When in doubt, resolve the value in the serv
 
 ## Worked example — TLM-3165 `AccountName` (what triggered this rule)
 
-The unified Alert Email V1 needs the company/account name in the footer (`AccountName`).
+The unified Alert Email V1 needs the company/account name in the footer (`AccountName` — a required
+content key: forwarded alerts must be traceable on multi-account / shared-mailbox setups).
 
-### ❌ What was done — resolved in DataService and shipped down the wire
+### ❌ What was done — the SAME lookup re-implemented in TWO producers
 
 ```csharp
-// Telemax.DataService — commit 0c33f074e
-// Widened the hot-path metadata cache just to carry the company name…
-VehicleMetadataPatch.CompanyNames        // new
-IVehicleMetadataCache.GetCompanyName(id) // new
-// …then set it on every alert message:
+// (1) Telemax.DataService — widened the hot-path metadata cache just to carry the name…
+VehicleMetadataPatch.CompanyNames                 // new
+IVehicleMetadataCache.GetCompanyName(id)          // new
+DataStorage: db.Companies.Where(...).Select(c => new { c.Id, c.Name })  // extra per-batch query
 result.AccountName = _vehicleMetadataCache.GetCompanyName(snapshot.Alert.CompanyId);
+
+// (2) Telemax.Services.NightDrivingAlertService — a SECOND copy of the same query…
+NightDrivingAlertStore: db.Companies.Select(c => new { c.Id, c.FeatureEnabled, c.Name })
+message.AccountName = alert.CompanyName;
 ```
 
-This added a per-batch company-name load to `DataService` and sent `AccountName` across the pipeline.
+Two services each running their own "company name for this vehicle" query — the classic drift trap.
 
 ### ✅ What the rule asks — re-use the service that already resolves the company
 
 `Telemax.NotificationService` **already** resolves the vehicle's company for alert gating:
-`VehicleCompanyProvider` queries the `Companies` table per vehicle (cached, TTL configurable) to read
-`CompanyAlertConfiguration`. The company row it already loads carries the **Name**. So the footer's
-`AccountName` can be filled **in NotificationService, from the company it already has** — with no new
-DataService cache, no new field on the wire, and one authoritative source for "company name".
+`VehicleCompanyProvider` queries the `Companies` table per company (cached) to read
+`CompanyAlertConfiguration`, and **every `Destination` already carries `CompanyId`**. Adding `c.Name`
+to that existing projection yields the account name with **zero extra queries**, and the
+`NotificationProcessor` fills `message.AccountName` from `destination.CompanyId` right before render.
+
+**Resolution applied (TLM-3165):** `AccountName` is now owned solely by `NotificationService`
+(`VehicleCompanyProvider.GetCompanyName` + a one-line fill in `NotificationProcessor`); the company-name
+loads were deleted from **both** `DataService` (`DataStorage`, `VehicleMetadataCache`,
+`VehicleMetadataPatch.CompanyNames`) and `NightDrivingAlertService` (`NightDrivingAlertStore`). One
+owner, one query, no field on the wire.
 
 > Content that is genuinely *computed at the point of production* (e.g. the alert's measured value,
 > heading, speed delta — "the template does no maths") correctly belongs in DataService. This rule is
