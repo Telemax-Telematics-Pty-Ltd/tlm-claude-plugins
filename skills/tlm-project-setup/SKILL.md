@@ -328,6 +328,18 @@ Collect them **in the same form as PHASE 2**, not as a separate conversation. Fo
 a real clone URL and picks the branch out of it. Plus a one-line `role` and `notes` on what this project
 actually uses from it.
 
+**When a repo will be CLONED, ask where it should land — one question, before cloning. Don't silently
+default to `~/tlm-ecosystem`.** That shared store is right when the sibling is purely a contract to *read*.
+But a user often *works* across several of these repos side-by-side rather than only referencing them, and
+for that they want the checkout next to this project so their editor and tooling treat it as one
+workspace. Offer the choice and pass the matching flag:
+- **next to this project** (they'll edit it too) → `--dir ..` → clones to `../<name>`
+- **shared read-only reference store** (default, shared with other projects) → no flag → `~/tlm-ecosystem/<name>`
+- **a specific folder** → `--dir <parent>` (name appended) or `--path <dest>` (exact folder)
+
+A repo added by an **on-disk path stays where it is** — this question is only for repos being cloned. Ask
+once and reuse the answer for every cloned repo in this run unless the user wants them split up.
+
 ```bash
 RULES=".claude/tlm-plugin"; [ -d "$RULES" ] || RULES="${CLAUDE_PLUGIN_ROOT}"
 
@@ -338,16 +350,21 @@ node "$RULES/skills/tlm-project-setup/ecosystem.mjs" add git@github.com:acme/tlm
 # a pasted browse URL — clone URL + branch are parsed out of it:
 node "$RULES/skills/tlm-project-setup/ecosystem.mjs" add "https://github.com/acme/tlm-web/tree/develop" --role web
 node "$RULES/skills/tlm-project-setup/ecosystem.mjs" add "https://dev.azure.com/org/_git/api?version=GBstage" --role backend
+# override where a cloned repo lands (default: shared workspaceRoot):
+node "$RULES/skills/tlm-project-setup/ecosystem.mjs" add git@github.com:acme/tlm-web.git --role web --dir ..        # sibling of this project: ../tlm-web
+node "$RULES/skills/tlm-project-setup/ecosystem.mjs" add git@github.com:acme/tlm-web.git --role web --path ~/work/web  # exact destination folder
 
 node "$RULES/skills/tlm-project-setup/ecosystem.mjs" sync     # clone what is missing, fetch what is there
 node "$RULES/skills/tlm-project-setup/ecosystem.mjs" index    # write .claude/ecosystem-map.md (+ relationships)
 ```
 
 - **Clones land in one shared `workspaceRoot`** (default `~/tlm-ecosystem`), so several projects
-  referencing the same sibling share a single checkout. Shallow (`depth 1`) — they are references, not
-  repos anyone works in from here. **Private repos** need the user's own git auth to be set up (SSH keys,
-  Azure PAT / credential manager); if a clone fails, report the exact error and point them at their auth,
-  don't guess the contract.
+  referencing the same sibling share a single checkout. Override per repo with `--dir <parent>` (repo
+  name appended) or `--path <dest>` (exact folder); a relative value resolves against this project, so
+  `--dir ..` places the sibling right next to the project directory. Shallow (`depth 1`) — they are
+  references, not repos anyone works in from here. **Private repos** need the user's own git auth to be set
+  up (SSH keys, Azure PAT / credential manager); if a clone fails, report the exact error and point them at
+  their auth, don't guess the contract.
 - **A repo already on disk stays where it is.** `add <path>` records its `origin` URL too, so a
   teammate's `/tlm-project-setup` can clone the same thing.
 - **`index` is what Claude actually reads** — `.claude/ecosystem-map.md`, committed, no secrets. It writes
@@ -467,7 +484,7 @@ encodes, so its `still needed` list *is* the outstanding column.
 | `docs.mcp` | default `context7` |
 | `specDriven.*` | detected (`openspec/` present) — never asked here |
 | `ecosystem.enabled` · `ecosystem.repos[]` | PHASE 1 Q4; role + notes per repo in the **form** |
-| `ecosystem.workspaceRoot` · `indexFile` | defaults — mention `workspaceRoot` in the form only if a repo is being cloned |
+| `ecosystem.workspaceRoot` · `indexFile` | defaults — but when any repo will be **cloned**, ask where it should land (next to this project via `--dir ..`, the shared `~/tlm-ecosystem`, or a specific `--path`) per PHASE 1.6; don't silently default |
 | `pluginRepo.enabled` · `vendorDir` · `baseBranch` · `prMode` · `bump` · `helperScript` | defaults (PHASE 1.5 installs it) |
 | `pluginRepo.upstreamRemote` · `ownerRepo` | defaults — but **confirm in the form**: the default is an SSH host alias that only resolves on the machine whose `~/.ssh/config` defines it |
 

@@ -14,12 +14,16 @@
 //   node ecosystem.mjs list                 # registered repos + on-disk status
 //   node ecosystem.mjs sync [name...]       # clone what's missing, fetch what's there
 //   node ecosystem.mjs index                # (re)write the cross-repo map + relationships
-//   node ecosystem.mjs add <path-or-url> [--name x] [--role backend] [--notes "..."] [--ref b]
+//   node ecosystem.mjs add <path-or-url> [--name x] [--role backend] [--notes "..."] [--ref b] [--dir <parent> | --path <dest>]
 //   node ecosystem.mjs preflight            # what it would do; no writes
 //
 // `add` accepts a clone URL, a local path, OR a pasted browse URL — a GitHub/GitLab
 // file view (…/tree/<branch>/…) or an Azure DevOps repo page (…/_git/<repo>?version=GB<branch>).
 // A browse URL is normalized to a real clone URL and the branch in it becomes `ref`.
+//
+// A cloned repo normally lands in the shared workspaceRoot; override the destination for
+// one repo with --dir <parent> (repo name appended) or --path <dest> (exact folder). A
+// relative value resolves against this project, so --dir .. clones the sibling next to it.
 //
 // Config — <project>/.claude/settings.local.json → tlm.ecosystem (fallback
 // .claude/tlm.local.json → ecosystem). Shape in setup/tlm-config.reference.json:
@@ -494,7 +498,7 @@ function cmdIndex() {
 
 function cmdAdd(args) {
   const target = args[0]
-  if (!target) die('usage: ecosystem.mjs add <path | clone-url | browse-url> [--name x] [--role backend] [--notes "..."] [--ref develop]')
+  if (!target) die('usage: ecosystem.mjs add <path | clone-url | browse-url> [--name x] [--role backend] [--notes "..."] [--ref develop] [--dir <parent> | --path <dest>]')
   const flag = (n) => {
     const i = args.indexOf(`--${n}`)
     return i === -1 ? undefined : args[i + 1]
@@ -514,7 +518,16 @@ function cmdAdd(args) {
   if (flag('role')) entry.role = flag('role')
   if (looksGit) {
     entry.gitUrl = parsed.gitUrl
-    entry.path = contract(path.join(expand(eco.workspaceRoot || DEFAULT_WORKSPACE), entry.name))
+    // Where the clone lands, most specific wins: --path is the exact destination
+    // (folder name included); --dir is a parent the repo name is appended to; otherwise
+    // the shared workspaceRoot. Both flags override workspaceRoot for THIS repo only, and
+    // a relative value resolves against this project — so `--dir ..` (or `--path ../web`)
+    // puts the sibling right next to the project directory.
+    if (flag('path')) entry.path = contract(expand(flag('path')))
+    else {
+      const base = flag('dir') ? expand(flag('dir')) : expand(eco.workspaceRoot || DEFAULT_WORKSPACE)
+      entry.path = contract(path.join(base, entry.name))
+    }
     const ref = flag('ref') || parsed.ref
     if (ref) entry.ref = ref
   } else {
