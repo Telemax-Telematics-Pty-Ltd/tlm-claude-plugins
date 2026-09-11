@@ -194,19 +194,73 @@ Full detail: `02-styling-stylesheet.md`.
   > That's precisely what `BaseInput` adapts internally — which is why screens stay register-first. If a
   > project has no `BaseInput`, `Controller` is required at every field until one exists.
 
-- Function minimalism, no `as any`, i18n via i18next — all from `ai/shared-fe/`.
+- Function minimalism, no `as any`, i18n via i18next — all from `ai/shared-fe/`. **RN differs on one
+  point:** the web setup adds `i18next-browser-languagedetector`, which is browser-only. On RN, reading
+  the device locale needs a native module (`react-native-localize`, or `expo-localization` on Expo) —
+  so when a project has a fixed default locale, set `lng` + `fallbackLng` to it and add no detector at
+  all. Also set `interpolation.escapeValue: false`: there is no HTML to escape, and escaping mangles
+  non-ASCII interpolated values.
 
 ## 7. Preferred libraries
 
 Build our own `Base*` / `Common` components; minimize external UI deps. When a native capability is
-needed, prefer these over alternatives:
+needed, prefer these over alternatives. **The answers differ by platform — pick the right list.**
+
+**In an Expo project, reach for `expo-*` FIRST**, even when a community package looks more capable: the
+Expo module is versioned with the SDK, upgraded by `expo install`, ships its own config plugin, and is
+covered by EAS builds. Fall through to a community package only where the SDK has no equivalent.
+
+### Expo projects
+
+- `expo-router` — file-based navigation
+- `expo-splash-screen`, `expo-status-bar` — app chrome
+- `expo-web-browser` — in-app browser (OAuth, policy links)
+- `expo-image-picker` — image picking (`allowsEditing` gives the crop step)
+- `expo-image-manipulator` — resize / compress before upload
+
+### React Native CLI projects
+
+- `@react-navigation/native-stack` + `react-native-screens` — navigation
+- `react-native-bootsplash` — splash screen
+- RN's built-in `StatusBar` — no package needed
+- `react-native-inappbrowser-reborn` — in-app browser (OAuth, policy links)
+- `react-native-image-crop-picker` — image pick + native crop UI
+- `@bam.tech/react-native-image-resizer` — resize / compress before upload (scoped fork; the unscoped
+  `react-native-image-resizer` is abandoned)
+
+Never put an `expo-*` package in a bare RN CLI project. Detect which you are in using the rule in
+**When this applies** at the top of this file.
+
+### Both — no Expo SDK equivalent exists
 
 - `react-native-safe-area-context` — safe-area insets
-- `@react-native-async-storage/async-storage` — persistence
-- `expo-splash-screen`, `expo-status-bar` — app chrome
-- `react-native-otp-entry` — OTP input (the custom-controlled `Controller` case above)
+- `@react-native-async-storage/async-storage` — persistence. **This is the default storage layer.** Do
+  not reach for MMKV, SQLite/`expo-sqlite`, WatermelonDB or Realm until a requirement actually needs
+  them (thousands of rows, relational queries, sync, full-text search); tokens and prefs do not.
 - `react-native-svg` — vector graphics
-- `expo-router` — file-based navigation (Expo projects)
+- `react-native-otp-entry` — OTP input (the custom-controlled `Controller` case above)
+- `react-native-modalize` — bottom-sheet modal (see the caveat in `01-architecture.md`)
+
+Native modules always need a rebuild — `pod install` + recompile on CLI, a development build on Expo.
+Never just a Metro restart, and none of them work in Expo Go.
+
+## 8. New Architecture — keep it ON
+
+`newArchEnabled=true` (Android) and the Fabric/TurboModule iOS pods are the **preferred and default**
+state for every project. It is the only architecture RN 0.76+ develops against, and some required
+dependencies work under nothing else (`react-native-executorch` is Fabric-only).
+
+**Never disable the New Architecture to make a library work without asking the user first.** A library
+that needs `newArchEnabled=false` is a decision about the whole app, not a build fix: it forfeits Fabric
+for every other dependency and puts the project on a path RN is actively removing. When a dependency
+turns out to be old-architecture-only:
+
+1. Say so explicitly, and name the dependency.
+2. Offer the alternatives — a maintained replacement, a patch, or pinning the RN version.
+3. Let the user choose. Do not flip the flag and move on.
+
+The same applies to any other broad opt-out a library asks for (Hermes off, `USE_FRAMEWORKS`, disabling
+codegen): confirm before changing it.
 
 ## Checklist
 
@@ -216,4 +270,7 @@ needed, prefer these over alternatives:
 - [ ] Data-driven lists use `FlatList` with a stable `keyExtractor` and a `ListEmptyComponent` — including horizontal rows (`FlatList horizontal`, not a horizontal `ScrollView` + `.map()`)
 - [ ] RN primitives via `Col` / `Row` / `TextPrimary` / `Base*` wrappers; no scattered raw styles
 - [ ] Icon sizes and fixed dimensions wrapped in `scale()` (fonts `scaleFont()`); theme tokens not re-scaled
+- [ ] Preferred library chosen from the right list — `expo-*` first on Expo, never `expo-*` on bare CLI
+- [ ] New Architecture still enabled; no library silently forced it off
+- [ ] Key-value state in AsyncStorage; no extra DB added without a requirement that needs one
 - [ ] Shared rules from `ai/shared-fe/` applied
