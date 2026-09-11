@@ -199,14 +199,35 @@ Full detail: `02-styling-stylesheet.md`.
 ## 7. Preferred libraries
 
 Build our own `Base*` / `Common` components; minimize external UI deps. When a native capability is
-needed, prefer these over alternatives:
+needed, prefer these over alternatives.
+
+**Portable — same package on Expo and RN CLI:**
 
 - `react-native-safe-area-context` — safe-area insets
-- `@react-native-async-storage/async-storage` — persistence
-- `expo-splash-screen`, `expo-status-bar` — app chrome
-- `react-native-otp-entry` — OTP input (the custom-controlled `Controller` case above)
+- `@react-native-async-storage/async-storage` — persistence. **This is the default storage layer.** Do
+  not reach for MMKV, SQLite, WatermelonDB, Realm or op-sqlite until a requirement actually needs them
+  (large datasets, relational queries, sync); key-value prefs and tokens belong in AsyncStorage.
 - `react-native-svg` — vector graphics
-- `expo-router` — file-based navigation (Expo projects)
+- `react-native-otp-entry` — OTP input (the custom-controlled `Controller` case above)
+- `react-native-inappbrowser-reborn` — in-app browser for OAuth and policy links
+- `react-native-image-crop-picker` — image pick + native crop UI
+- `@bam.tech/react-native-image-resizer` — resize / compress before upload (scoped fork; the unscoped
+  `react-native-image-resizer` is abandoned)
+- `react-native-modalize` — bottom-sheet modal (see the caveat in `01-architecture.md`)
+
+**Platform-specific — these differ between Expo and RN CLI:**
+
+| Area | Expo | RN CLI |
+|------|------|--------|
+| Navigation | `expo-router` | `@react-navigation/native-stack` + `react-native-screens` |
+| Splash screen | `expo-splash-screen` | `react-native-bootsplash` |
+| Status bar | `expo-status-bar` | RN's built-in `StatusBar` |
+
+Do not apply the Expo column to a bare RN CLI project — `expo-*` packages need the Expo runtime. Detect
+which project you are in using the rule in **When this applies** at the top of this file.
+
+Native modules always need a rebuild (`pod install` + recompile on CLI, a development build on Expo) —
+never just a Metro restart. None of them work in Expo Go.
 
 ## Checklist
 
@@ -216,4 +237,6 @@ needed, prefer these over alternatives:
 - [ ] Data-driven lists use `FlatList` with a stable `keyExtractor` and a `ListEmptyComponent` — including horizontal rows (`FlatList horizontal`, not a horizontal `ScrollView` + `.map()`)
 - [ ] RN primitives via `Col` / `Row` / `TextPrimary` / `Base*` wrappers; no scattered raw styles
 - [ ] Icon sizes and fixed dimensions wrapped in `scale()` (fonts `scaleFont()`); theme tokens not re-scaled
+- [ ] Preferred library chosen from the correct column — no `expo-*` package in a bare RN CLI project
+- [ ] Key-value state in AsyncStorage; no extra DB added without a requirement that needs one
 - [ ] Shared rules from `ai/shared-fe/` applied

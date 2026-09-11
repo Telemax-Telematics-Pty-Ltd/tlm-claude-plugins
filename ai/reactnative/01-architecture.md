@@ -19,16 +19,50 @@
 > external UI packages.** Reach for a library only when the feature genuinely needs native/platform
 > plumbing we should not reinvent.
 
-**Preferred libraries** — when a feature needs one of these areas, PREFER these exact packages:
-- `react-native-safe-area-context` — safe area insets
-- `@react-native-async-storage/async-storage` — persistent key-value storage
-- `expo-splash-screen` — splash screen control
-- `expo-status-bar` — status bar styling
-- `react-native-otp-entry` — OTP / verification code input
-- `react-native-svg` — SVG / vector graphics / icons
+**Preferred libraries** — when a feature needs one of these areas, PREFER these exact packages.
+
+The **Platform** column matters: this KB is written Expo-first, but several entries are Expo-only and
+have a different RN-CLI equivalent. *Both* = one package serves Expo and bare RN CLI alike.
+
+| Area | Platform | Package |
+|------|----------|---------|
+| Safe-area insets | Both | `react-native-safe-area-context` |
+| Persistent key-value storage | Both | `@react-native-async-storage/async-storage` |
+| SVG / vector graphics / icons | Both | `react-native-svg` |
+| OTP / verification code input | Both | `react-native-otp-entry` |
+| In-app browser (OAuth, ToS / policy links) | Both | `react-native-inappbrowser-reborn` |
+| Image pick + crop | Both | `react-native-image-crop-picker` |
+| Image resize / compress before upload | Both | `@bam.tech/react-native-image-resizer` |
+| Bottom-sheet modal | Both | `react-native-modalize` — read the caveat below |
+| Splash screen | Expo | `expo-splash-screen` — RN CLI: `react-native-bootsplash` |
+| Status bar | Expo | `expo-status-bar` — RN CLI: RN's built-in `StatusBar` |
+| File-based navigation | Expo | `expo-router` — RN CLI: `@react-navigation/native-stack` + `react-native-screens` |
+
+### Notes on the media / browser / modal entries
+
+- **All four are native modules.** On Expo they require a **development build** — none of them work in
+  Expo Go. On RN CLI they need a `pod install` plus a rebuild, not just a Metro restart.
+- **`react-native-inappbrowser-reborn`** keeps OAuth and policy links inside the app, so the session
+  cookie and the back-navigation stay ours instead of handing the user to Safari/Chrome. If a project is
+  already on Expo SDK and needs nothing beyond "open a URL in a sheet", `expo-web-browser` is the
+  lighter choice — prefer the reborn package when you need the full `openAuth` flow or custom chrome.
+- **`react-native-image-crop-picker`** is preferred over `expo-image-picker` because it ships a real
+  native cropping UI. Pair it with the resizer rather than uploading the cropper's output directly.
+- **`@bam.tech/react-native-image-resizer`** is the maintained fork of the abandoned
+  `react-native-image-resizer` — use the `@bam.tech/` scope, never the unscoped name. Always resize
+  before upload; a modern phone camera produces 4–12 MB images that do not belong on the wire.
+- **`react-native-modalize` caveat (verified 2026-09-12):** the last npm release is `2.1.1`, published
+  **2022-08-10**, and it peers on `react-native-gesture-handler`. That predates the New Architecture
+  becoming the default, so on a Fabric-only project (RN 0.76+ with `newArchEnabled=true`) verify it
+  actually renders before committing to it. If it does not, `@gorhom/bottom-sheet` is the maintained
+  equivalent — it needs `react-native-gesture-handler` **and** `react-native-reanimated`. Either way a
+  bottom sheet pulls in gesture-handler, which is otherwise NOT required by `native-stack`.
 
 Animation libraries (Moti / Reanimated) are **not** on the preferred list — treat them as optional add-ons,
-consistent with minimizing external deps.
+consistent with minimizing external deps. **Exception:** some preferred native modules force
+`react-native-worklets` / `react-native-reanimated` in as a hard peer — `react-native-executorch` requires
+worklets, and `react-native-keyboard-controller` requires Reanimated. When a required dependency pulls
+them in, that is not a violation of this policy.
 
 ## Modular Structure (`_modules/` — RN flavor)
 
