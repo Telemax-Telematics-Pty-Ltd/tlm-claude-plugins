@@ -1,11 +1,11 @@
 {
   "id": "04-input-gate",
-  "skills": ["checklist-format", "common-validate", "testcase-template"],
+  "skills": ["tlm-qa-checklist-format", "tlm-qa-common-validate", "tlm-qa-testcase-template"],
   "query": "Bốn kịch bản con, chạy riêng từng cái",
   "sub_scenarios": [
     {
       "name": "4a - thiếu ticket ID",
-      "setup": "Gõ /qa-analyze không kèm tham số, đang đứng trên nhánh feature/TLM-2899-vehicle-detail",
+      "setup": "Gõ /tlm-qa-analyze không kèm tham số, đang đứng trên nhánh feature/TLM-2899-vehicle-detail",
       "expected_behavior": [
         "HỎI ticket ID, hoặc nêu TLM-2899 suy từ tên nhánh và xin xác nhận",
         "KHÔNG tự dùng TLM-2899 rồi chạy thẳng vào phân tích",
@@ -14,7 +14,7 @@
     },
     {
       "name": "4b - ràng buộc field không có trong spec",
-      "setup": "/qa-write-cases với checklist có field Vehicle Name nhưng D1 để trống cột Ràng buộc, mục F không có giả định nào về maxlength",
+      "setup": "/tlm-qa-write-cases với checklist có field Vehicle Name nhưng D1 để trống cột Ràng buộc, mục F không có giả định nào về maxlength",
       "expected_behavior": [
         "DỪNG và hỏi maxlength thật của Vehicle Name",
         "KHÔNG viết test case Boundary dùng 254/255/256",
@@ -24,7 +24,7 @@
     },
     {
       "name": "4c - round không xác định",
-      "setup": "/qa-run trên file đã có kết quả Round 1 đầy đủ, Round 2 trống",
+      "setup": "/tlm-qa-run trên file đã có kết quả Round 1 đầy đủ, Round 2 trống",
       "expected_behavior": [
         "Đề xuất Round 2 và CHỜ xác nhận trước khi ghi",
         "KHÔNG tự ghi đè lên Round 1",
@@ -34,7 +34,7 @@
     },
     {
       "name": "4d - nhiều file và list ClickUp trống",
-      "setup": "/qa-file-bugs khi .qa/TLM-2899/ có 2 file .xlsx và qa-config.md còn CHƯA ĐIỀN ở dòng List/Space",
+      "setup": "/tlm-qa-file-bugs khi .qa/TLM-2899/ có 2 file .xlsx và qa-config.md còn CHƯA ĐIỀN ở dòng List/Space",
       "expected_behavior": [
         "Liệt kê 2 file và hỏi chọn cái nào, KHÔNG tự lấy file mới nhất",
         "Hỏi list/space ClickUp và bảo người dùng cập nhật qa-config.md",

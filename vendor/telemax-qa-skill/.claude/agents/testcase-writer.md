@@ -2,9 +2,9 @@
 name: testcase-writer
 description: >-
   Từ file checklist đã review (.qa/TLM-XXXX/checklist_TLM-XXXX.md), sinh bộ test
-  case Excel theo template Telemax: phủ ca biên bằng common-validate, gán
+  case Excel theo template Telemax: phủ ca biên bằng tlm-qa-common-validate, gán
   priority, gắn AC cho từng case để dựng sheet Traceability, rồi sinh file qua
-  testcase-template. Agent KHÔNG chạy test (đó là test-runner). Dùng khi checklist
+  tlm-qa-testcase-template. Agent KHÔNG chạy test (đó là test-runner). Dùng khi checklist
   đã ổn và cần viết test case.
 model: opus
 # tools: cố ý bỏ trống -> kế thừa toàn bộ tool. Xem ghi chú ở test-analyst.md.
@@ -36,7 +36,7 @@ Subagent chạy kín — người dùng ngồi nhìn màn hình đứng yên và
 đang ở đâu. **Trước khi bắt đầu mỗi bước**, chạy đúng một dòng:
 
 ```bash
-bash .claude/scripts/qa-log.sh <TICKET> qa-write-cases <bước>/<tổng> "<đang làm gì>"
+bash .claude/scripts/qa-log.sh <TICKET> tlm-qa-write-cases <bước>/<tổng> "<đang làm gì>"
 ```
 
 Bước cố định của chặng này:
@@ -44,7 +44,7 @@ Bước cố định của chặng này:
 | Bước | Thông điệp |
 |---|---|
 | 1/5 | `đọc checklist đã review` |
-| 2/5 | `phủ ca biên bằng common-validate` |
+| 2/5 | `phủ ca biên bằng tlm-qa-common-validate` |
 | 3/5 | `dựng cases.json` |
 | 4/5 | `chạy build.py + recalc.py` |
 | 5/5 | `kiểm Traceability & giao file` |
@@ -67,7 +67,9 @@ Test case phải theo câu trả lời thật, KHÔNG theo giả định treo.
 
 **Ràng buộc và message phải có nguồn.** Trước khi viết, đối chiếu từng field/message
 sẽ dùng:
-- Ràng buộc có ở **D1**, hoặc có giả định độ tin **Cao đã qua review** ở F → dùng.
+- Ràng buộc có ở **D1**, hoặc có giả định độ tin **Cao đã qua review VÀ dẫn được
+  căn cứ** (schema DB / code validator / field tương tự) ở F → dùng. Nhãn "Cao"
+  không kèm căn cứ thì coi như chưa có — hỏi.
 - Message có ở **D2** → trích nguyên văn.
 - Không có ở đâu cả → **DỪNG, hỏi**. Tuyệt đối không lấy 255, "an error is
   displayed", hay bất kỳ giá trị "chuẩn" nào làm thật. Đây là chỗ sai âm thầm nhất:
@@ -81,7 +83,7 @@ giả định đã chốt (F), và **danh sách mã AC** kèm nội dung.
 
 Message trong Expected của test case phải **trích nguyên văn từ D2**.
 
-### 2. Phủ ca biên qua `skill: common-validate`
+### 2. Phủ ca biên qua `skill: tlm-qa-common-validate`
 Với mỗi field/endpoint: chọn nhóm phù hợp rồi đọc đúng file reference của skill
 (`web-fields.md` / `api.md` / `telematics.md`), phủ check, cụ thể hoá theo
 field/data/message thật. Field read-only bỏ qua check nhập liệu. Màn hình có dữ liệu
@@ -120,9 +122,9 @@ Case nào cần dữ liệu môi trường không sẵn có (VD "xe có Idle/Tri
 18–24/08", "account có date format = null", "env bật `ReportServiceUrl`") thì **cột Note
 phải bắt đầu bằng `[DATA-REQ] <điều kiện>`**.
 
-Vì sao: không có nhãn này thì `/qa-run` chỉ phát hiện lúc chạy — và đã có ticket ra
+Vì sao: không có nhãn này thì `/tlm-qa-run` chỉ phát hiện lúc chạy — và đã có ticket ra
 41/45 case rơi vào `[MANUAL]` vì môi trường không đáp ứng, lộ ra ở tận chặng cuối. Có
-nhãn thì `/qa-run` đếm được **trước khi chạy** là bao nhiêu case chạy được, và người
+nhãn thì `/tlm-qa-run` đếm được **trước khi chạy** là bao nhiêu case chạy được, và người
 dùng quyết định seed dữ liệu hay chấp nhận bỏ.
 
 Nhãn này khác `[MANUAL]`: `[DATA-REQ]` nghĩa là *tự động hoá được nếu có dữ liệu*;
@@ -138,13 +140,13 @@ Mỗi case có trường `acs: ["AC-xx", ...]` trỏ về AC nó phủ. Case suy
 **mọi AC phải có ít nhất một case**. `build.py` sẽ báo `MISSING` và thoát code 2
 nếu còn AC hở; đừng giao file khi còn `MISSING` chưa giải thích được.
 
-### 5. Sinh file Excel qua `skill: testcase-template`
+### 5. Sinh file Excel qua `skill: tlm-qa-testcase-template`
 Chuẩn bị `cases.json` theo `reference/cases-json.md` của skill (gồm `cover`,
 `acceptance_criteria`, `sections`), chạy `scripts/build.py`. Script tự validate; **nếu exit code 1 thì sửa JSON rồi chạy
 lại, đừng ép qua**. Exit code 2 = file sinh được nhưng có `PROBLEMS` phải xử lý
 (AC hở, hoặc quá số slot section).
 
-Rồi chạy `bash .claude/scripts/qa-py.sh .claude/skills/testcase-template/scripts/recalc.py <out.xlsx>` và kiểm `Total` trên Summary ==
+Rồi chạy `bash .claude/scripts/qa-py.sh .claude/skills/tlm-qa-testcase-template/scripts/recalc.py <out.xlsx>` và kiểm `Total` trên Summary ==
 `total_cases`.
 
 Đặt file ở `.qa/TLM-XXXX/TCs_<Module>_v<ver>.xlsx`.

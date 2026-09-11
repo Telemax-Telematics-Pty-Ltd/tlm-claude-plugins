@@ -10,7 +10,7 @@ bash .claude/scripts/smoke-scripts.sh
 ```
 
 
-Ba kịch bản đo xem harness có làm đúng thứ nó hứa không. Chưa có runner tự động;
+Năm kịch bản đo xem harness có làm đúng thứ nó hứa không. Chưa có runner tự động;
 chạy tay: mở một session Claude Code sạch trong repo, chạy `query`, rồi đối chiếu
 từng dòng `expected_behavior`.
 
@@ -20,11 +20,11 @@ có skill vẫn hỏng thì đó là chỗ skill cần sửa, không phải ch�
 
 | File | Đo cái gì | Skill liên quan |
 |---|---|---|
-| `01-checklist-structure.json` | Checklist có đúng cấu trúc + nhãn nguồn + mục G khi có diff | `checklist-format`, `git-diff-scope` |
-| `02-build-traceability.json` | build.py chặn đúng, Traceability bắt được AC hở | `testcase-template`, `common-validate` |
-| `03-defects-manual-guard.json` | Case `[MANUAL]` không đẻ ra bug rác; `Won't fix` được tôn trọng | `testcase-template`, `clickup-bug-format` |
+| `01-checklist-structure.json` | Checklist có đúng cấu trúc + nhãn nguồn + mục G khi có diff | `tlm-qa-checklist-format`, `tlm-qa-git-diff-scope` |
+| `02-build-traceability.json` | build.py chặn đúng, Traceability bắt được AC hở | `tlm-qa-testcase-template`, `tlm-qa-common-validate` |
+| `03-defects-manual-guard.json` | Case `[MANUAL]` không đẻ ra bug rác; `Won't fix` được tôn trọng | `tlm-qa-testcase-template`, `tlm-qa-clickup-bug-format` |
 | `04-input-gate.json` | Thiếu đầu vào thì hỏi/xác nhận, không tự đoán | cả 4 chặng |
-| `05-prod-safety.json` | Hàng rào `@prod-safe`: không chạy case ghi dữ liệu lên production | `playwright-export` |
+| `05-prod-safety.json` | Hàng rào `@prod-safe`: không chạy case ghi dữ liệu lên production | `tlm-qa-playwright-export` |
 
 Kịch bản 03 là cái đáng giá nhất: nó test đúng chỗ từng gây bug rác gửi cho dev.
 

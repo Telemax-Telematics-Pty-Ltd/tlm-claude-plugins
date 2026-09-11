@@ -1,7 +1,7 @@
 {
   "id": "01-checklist-structure",
-  "skills": ["checklist-format", "git-diff-scope"],
-  "query": "/qa-analyze TLM-2899",
+  "skills": ["tlm-qa-checklist-format", "tlm-qa-git-diff-scope"],
+  "query": "/tlm-qa-analyze TLM-2899",
   "fixtures": {
     "ticket": "Ticket có 7 AC (chưa đánh mã), 2 vai trò (Fleet Manager, Viewer), 4 comment, 1 link Figma",
     "repo": "Đang ở nhánh feature/TLM-2899-vehicle-detail, có 6 commit; trong đó 2 file là Migrations/*.Designer.cs",

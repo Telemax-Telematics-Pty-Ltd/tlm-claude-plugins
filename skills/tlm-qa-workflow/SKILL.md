@@ -1,6 +1,6 @@
 ---
 name: tlm-qa-workflow
-description: Entry point for the Telemax QA harness (vendored at vendor/telemax-qa-skill) — ticket → test-analysis checklist → test-case Excel → run UI/API tests → ClickUp bugs → verify production. Detects whether the harness is installed in the current project, installs it from the vendored copy when it is not (manual additive merge, never --force), then routes the request to the right /qa-* command stage. TRIGGER whenever the user asks for QA work on a ticket: "test ticket này", "phân tích ticket để test", "checklist test", "viết test case", "chạy test", "test hồi quy", "tạo bug cho case fail", "verify production", "QA TLM-1234", or names any /qa-* command in a repo where it is not yet installed.
+description: Entry point for the Telemax QA harness (vendored at vendor/telemax-qa-skill) — ticket → test-analysis checklist → test-case Excel → run UI/API tests → ClickUp bugs → verify production. Detects whether the harness is installed in the current project, installs it from the vendored copy when it is not (manual additive merge, never --force), then routes the request to the right /tlm-qa-* command stage. TRIGGER whenever the user asks for QA work on a ticket: "test ticket này", "phân tích ticket để test", "checklist test", "viết test case", "chạy test", "test hồi quy", "tạo bug cho case fail", "verify production", "QA TLM-1234", or names any /tlm-qa-* command in a repo where it is not yet installed.
 ---
 
 Route QA requests into the **Telemax QA harness** — a separate installable that lives in each
@@ -14,10 +14,14 @@ of the way.**
 Installed means BOTH exist in the project:
 
 - `.claude/qa-config.md`
-- `.claude/commands/qa-run.md`
+- `.claude/commands/tlm-qa-run.md`
 
 If installed → STEP 3. If not → STEP 2. If `qa-config.md` exists but still contains `CHƯA ĐIỀN`,
-say so up front — `/qa-file-bugs` will stop on it.
+say so up front — `/tlm-qa-file-bugs` will stop on it.
+
+> The vendored harness is namespaced under `tlm-qa-` in this plugin (upstream ships it unprefixed as
+> `/qa-*` / `checklist-format`, …). The transform is `vendor/apply-qa-prefix.py`; see the harness's
+> `PROVENANCE.md`. Detect on the **prefixed** filename above.
 
 ## STEP 2 — Install from the vendored copy (ask first)
 
@@ -47,39 +51,43 @@ Then walk the user through the harness's own post-install list — do not improv
    `TELEMAX_USER` / `TELEMAX_PASS` (never ask for the values in chat).
 2. **Restart Claude Code** — `.mcp.json` is read at startup only; a mid-session edit silently does
    nothing. Keep exactly ONE Playwright MCP, at project scope (`claude mcp list` to check).
-3. After restart: `/qa-setup` (it audits Python/openpyxl, chromium, MCP, LibreOffice and asks one
-   batched approval), then fill `.claude/qa-config.md` (ClickUp list/space for bugs).
+3. After restart: `/tlm-qa-setup` (it audits Python/openpyxl, chromium, MCP, LibreOffice and asks one
+   batched approval), then fill `.claude/qa-config.md` (ClickUp list/space for bugs). If anything
+   looks off later, `/tlm-qa-doctor` re-checks the environment read-only (installs nothing).
 4. Verify: `bash .claude/scripts/smoke-scripts.sh`.
 
 Platform note: the harness's scripts are **bash + Python** (deliberately not ported — see
 `PROVENANCE.md`), so on Windows they need Git Bash/WSL. Flag this before installing there.
 
-## STEP 3 — Route to the right /qa-* stage
+## STEP 3 — Route to the right /tlm-qa-* stage
 
-Every stage needs a **ticket ID** — a spec pasted into chat is not a ticket; `/qa-analyze` will stop
+Every stage needs a **ticket ID** — a spec pasted into chat is not a ticket; `/tlm-qa-analyze` will stop
 and offer to create one (that creation is `tlm-ba-ticket`'s job if the user wants help). Map the
 request and run the command:
 
 | Request looks like | Run |
 |---|---|
-| first time in this repo, or a stage reports a missing tool | `/qa-setup` |
-| login expired, seeded profile falls back to `/login` | `/qa-login` |
-| "phân tích ticket", "cần test những gì", "checklist test" | `/qa-analyze TLM-XXXX` |
-| review feedback written into the checklist's "Phản hồi review" | `/qa-apply-feedback TLM-XXXX` |
-| "viết test case", "gen file Excel" (checklist already confirmed) | `/qa-write-cases TLM-XXXX` |
-| "chạy test", "run các case" (Excel already reviewed) | `/qa-run TLM-XXXX` |
-| "tạo bug", "file bug cho case fail" | `/qa-file-bugs TLM-XXXX` |
-| "verify prod", dev fix đã deploy production | `/qa-verify-prod TLM-XXXX` |
+| first time in this repo, or a stage reports a missing tool | `/tlm-qa-setup` |
+| "môi trường lạ", MCP conflict, a tool that should work doesn't (read-only diagnosis) | `/tlm-qa-doctor` |
+| "đang ở đâu", which ticket is mid-flight, what to run next (read-only) | `/tlm-qa-status [TLM-XXXX]` |
+| login expired, seeded profile falls back to `/login` | `/tlm-qa-login` |
+| "phân tích ticket", "cần test những gì", "checklist test" | `/tlm-qa-analyze TLM-XXXX` |
+| review feedback written into the checklist's "Phản hồi review" | `/tlm-qa-apply-feedback TLM-XXXX` |
+| "viết test case", "gen file Excel" (checklist already confirmed) | `/tlm-qa-write-cases TLM-XXXX` |
+| "chạy test", "run các case" (Excel already reviewed) | `/tlm-qa-run TLM-XXXX` |
+| "tạo bug", "file bug cho case fail" | `/tlm-qa-file-bugs TLM-XXXX` |
+| "verify prod", dev fix đã deploy production | `/tlm-qa-verify-prod TLM-XXXX` |
 
 Progress is watchable from a second terminal: `tail -f .qa/TLM-XXXX/progress.log` — mention it when
-starting a long stage.
+starting a long stage. `/tlm-qa-status` is the cross-stage view: it reconciles the `.qa/<ticket>/state.json`
+journal against the artifacts actually on disk and names the one next stage to run.
 
 ## Hard rules (the harness's own — never route around them)
 
-- **Three review stops stand.** After `/qa-analyze`, after `/qa-apply-feedback`, after
-  `/qa-write-cases` the harness stops for human review. Never chain ticket → bugs in one go, even if
+- **Three review stops stand.** After `/tlm-qa-analyze`, after `/tlm-qa-apply-feedback`, after
+  `/tlm-qa-write-cases` the harness stops for human review. Never chain ticket → bugs in one go, even if
   the user asks for "the whole pipeline" — run the next stage only after they confirm the artifact.
-- **Production is read-only.** `/qa-verify-prod` runs reviewed code only (no MCP) and only
+- **Production is read-only.** `/tlm-qa-verify-prod` runs reviewed code only (no MCP) and only
   `@prod-safe` cases. Do not "just check one more thing" on prod via MCP.
 - **Bugs need one batched approval** before anything is created on ClickUp.
 - **Do not edit the Defects sheet by hand-rolled logic** — append after the last TC ID row, key by

@@ -2,7 +2,7 @@
 # smoke-scripts.sh — Regression test cho tầng script của harness.
 #
 # Không cần MCP, không cần ticket thật, không gọi Claude. Chạy được ở CI.
-# Kiểm 9 hành vi mà nếu vỡ thì cả luồng QA sai âm thầm.
+# Kiểm 12 nhóm hành vi mà nếu vỡ thì cả luồng QA sai âm thầm.
 #
 #   bash .claude/scripts/smoke-scripts.sh
 #
@@ -13,7 +13,22 @@
 
 set -uo pipefail
 
-SKILL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../skills/testcase-template" && pwd)"
+# Phần lớn assertion nằm trong heredoc Python và chỉ in "  FAIL ..." — chúng không
+# cộng vào $FAIL nên trước đây CI xanh dù hàng rào đã thủng. Chạy lại chính mình một
+# lần, tee ra log, rồi soi log: tiến trình con đã thoát hẳn nên không có race.
+if [ -z "${SMOKE_TEED:-}" ]; then
+  _log="$(mktemp)"
+  SMOKE_TEED=1 bash "$0" "$@" 2>&1 | tee "$_log"
+  _rc=${PIPESTATUS[0]}
+  if grep -q '^  FAIL' "$_log"; then
+    echo "CÓ DÒNG FAIL IN TRỰC TIẾP (xem ở trên) — $(grep -c '^  FAIL' "$_log") dòng"
+    _rc=1
+  fi
+  rm -f "$_log"
+  exit $_rc
+fi
+
+SKILL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../skills/tlm-qa-testcase-template" && pwd)"
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 
@@ -158,9 +173,95 @@ print("  PASS  Bug ID vào sheet Defects" if in_def else "  FAIL  Bug ID KHÔNG 
 print("  PASS  Bug ID vào sheet Test Cases (cột K)" if in_tc else "  FAIL  Bug ID KHÔNG vào sheet Test Cases")
 PY
 
+# ── 10. --mode status: cổng /tlm-qa-run đọc số bằng MỘT lệnh ───────────────────
+echo "[10] write_defects.py --mode status"
+bash "$(dirname "${BASH_SOURCE[0]}")/qa-py.sh" "$SKILL_DIR/scripts/write_defects.py" \
+  --file "$WORK/tc.xlsx" --mode status > "$WORK/status.json" 2>&1
+check "status exit 0" "$?" "0"
+python3 - "$WORK/status.json" "$WORK/tc.xlsx" <<'PY'
+import json, sys, os
+d = json.load(open(sys.argv[1]))
+for k in ("total_cases","round1","round2","already_run","suggest_round",
+          "resume_hint","defect_rows","data_req","manual","ac_missing"):
+    print(f"  PASS  status có key {k}" if k in d else f"  FAIL  status THIẾU key {k}")
+# Case [MANUAL] phải hiện ở nhóm manual — đây là nhãn mà /tlm-qa-run đếm trước khi chạy.
+ok = any(m["count"] >= 1 for m in d["manual"])
+print("  PASS  status gom được case [MANUAL]" if ok else "  FAIL  status không thấy case [MANUAL]")
+# Đọc-only: không được đẻ .bak
+print("  PASS  status không tạo .bak (đọc-only)" if not os.path.exists(sys.argv[2] + ".bak.status")
+      else "  FAIL  status tạo backup — nó phải là đọc-only")
+PY
+
+# ── 11. --mode cases: nguồn duy nhất của test-runner ───────────────────────
+echo "[11] write_defects.py --mode cases"
+bash "$(dirname "${BASH_SOURCE[0]}")/qa-py.sh" "$SKILL_DIR/scripts/write_defects.py" \
+  --file "$WORK/tc.xlsx" --mode cases > "$WORK/cases.json" 2>&1
+check "cases exit 0" "$?" "0"
+bash "$(dirname "${BASH_SOURCE[0]}")/qa-py.sh" "$SKILL_DIR/scripts/write_defects.py" \
+  --file "$WORK/tc.xlsx" --mode cases --round 1 --not-run-only > "$WORK/cases_resume.json" 2>&1
+check "cases --not-run-only exit 0" "$?" "0"
+python3 - "$WORK/cases.json" "$WORK/cases_resume.json" <<'PY'
+import json, sys
+d = json.load(open(sys.argv[1]))
+# Ba cột mà load_testcases TRƯỚC ĐÂY không đọc — thiếu chúng thì test-runner phải
+# tự chế script openpyxl tạm mỗi lần chạy.
+need = ("type", "precondition", "data", "expected", "manual", "data_req", "r1", "r2")
+missing = [k for k in need if d["cases"] and k not in d["cases"][0]]
+print("  PASS  case có đủ trường cho test-runner" if not missing
+      else f"  FAIL  case THIẾU trường: {missing}")
+print("  PASS  có case đọc được Type" if any(c["type"] for c in d["cases"])
+      else "  FAIL  không case nào đọc được Type (cột C)")
+print("  PASS  nhận diện được case [MANUAL]" if any(c["manual"] for c in d["cases"])
+      else "  FAIL  không nhận diện được [MANUAL]")
+# RESUME phải LOẠI BỚT, không được trả nhiều hơn
+r = json.load(open(sys.argv[2]))
+print("  PASS  --not-run-only lọc bớt case đã có kết quả" if r["count"] < d["count"]
+      else f"  FAIL  --not-run-only không lọc gì ({r['count']} vs {d['count']})")
+PY
+
+# ── 12. qa-state.sh — nhật ký trạng thái để resume ─────────────────────────
+echo "[12] qa-state.sh"
+SROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+STATE_SH="$(dirname "${BASH_SOURCE[0]}")/qa-state.sh"
+# Chạy trong sandbox riêng để KHÔNG đụng .qa/ thật của người dùng.
+SBOX="$WORK/sbox"; mkdir -p "$SBOX/.claude/scripts"
+cp "$STATE_SH" "$SBOX/.claude/scripts/"
+( cd "$SBOX"
+  bash .claude/scripts/qa-state.sh list > l0.json 2>&1
+  bash .claude/scripts/qa-state.sh set TLM-0001 analyze done "12 AC" > /dev/null 2>&1
+  sleep 1
+  bash .claude/scripts/qa-state.sh set TLM-0002 analyze done "cũ hơn" > /dev/null 2>&1
+  bash .claude/scripts/qa-state.sh set TLM-0002 run in_progress "case 30/45" > /dev/null 2>&1
+  touch .qa/TLM-0002/checklist_TLM-0002.md
+  bash .claude/scripts/qa-state.sh get TLM-0002 > g.json 2>&1
+  bash .claude/scripts/qa-state.sh list > l.json 2>&1
+  printf '{ hỏng' > .qa/TLM-0001/state.json
+  bash .claude/scripts/qa-state.sh set TLM-0001 run done "sau khi hỏng" > /dev/null 2>&1
+  echo $? > corrupt_rc.txt
+  bash .claude/scripts/qa-state.sh set TLM-0001 khong-ton-tai done > /dev/null 2>&1
+  echo $? > badstage_rc.txt )
+python3 - "$SBOX" <<'PY'
+import json, os, sys
+s = sys.argv[1]
+j = lambda f: json.load(open(os.path.join(s, f), encoding="utf-8"))
+def ck(ok, msg): print(("  PASS  " if ok else "  FAIL  ") + msg)
+
+ck(j("l0.json")["tickets"] == [], "list khi chưa có .qa/ trả rỗng, không lỗi")
+# Hồi quy: bản đầu dùng stdin cho cả heredoc lẫn dữ liệu -> list luôn ra 0 ticket.
+ck(j("l.json")["count"] == 2, "list thấy đủ 2 ticket (hồi quy lỗi stdin/heredoc)")
+ck(j("l.json")["tickets"][0]["ticket"] == "TLM-0002", "list sắp mới nhất lên đầu")
+g = j("g.json")
+ck(g["state"]["stages"]["run"]["status"] == "in_progress", "get đọc đúng trạng thái chặng")
+ck("started_at" in g["state"]["stages"]["run"], "in_progress có started_at (để phát hiện đứt)")
+# Journal và artifact PHẢI tách biệt — /tlm-qa-status dựa vào đó để bắt lệch.
+ck(g["artifacts"]["checklist"] is True, "get dò được artifact thật")
+ck(g["artifacts"]["testcase_xlsx"] == [], "artifact không có thì báo không có")
+ck(open(os.path.join(s, "corrupt_rc.txt")).read().strip() == "0",
+   "state.json hỏng vẫn set được (tự dựng lại, không chặn công việc)")
+ck(open(os.path.join(s, "badstage_rc.txt")).read().strip() != "0", "chặng sai bị từ chối")
+PY
+
 # ── Kết ─────────────────────────────────────────────────────────────────────
 echo
-INLINE_FAIL=0
-echo "Tổng: $PASS pass / $FAIL fail (chưa tính các dòng PASS/FAIL in trực tiếp ở trên)"
+echo "Tổng (đếm bằng bash): $PASS pass / $FAIL fail — các dòng FAIL in trực tiếp được soi ở lượt ngoài"
 if [ $FAIL -gt 0 ]; then echo "CÓ CASE ĐỎ"; exit 1; fi
-echo "Xanh. Đọc lại các dòng in trực tiếp để chắc không có FAIL nào."

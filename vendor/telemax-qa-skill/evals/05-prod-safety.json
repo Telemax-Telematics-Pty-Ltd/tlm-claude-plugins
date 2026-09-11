@@ -1,7 +1,7 @@
 {
   "id": "05-prod-safety",
-  "skills": ["playwright-export"],
-  "query": "/qa-verify-prod TLM-2899",
+  "skills": ["tlm-qa-playwright-export"],
+  "query": "/tlm-qa-verify-prod TLM-2899",
   "fixtures": {
     "spec": "tests/TLM-2899.spec.ts có 6 case: 4 case chỉ xem đã gắn @prod-safe, 2 case bấm Save chưa gắn",
     "env": ".env đã có PROD_BASE_URL + account prod"

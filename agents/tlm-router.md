@@ -31,7 +31,7 @@ Read only what the question needs; most answers need two files.
 | `.claude/tlm-plugin/RULES.md` | whether this project has a live rules copy, and its version |
 | `.claude/ecosystem-map.md` | which sibling repos are registered, and what each owns |
 | `.claude/harness.json` | whether z-harness is installed here, and what it gates |
-| `.claude/qa-config.md` (existence, and whether it still says `CHƯA ĐIỀN`) | whether the QA harness is installed here, and whether `/qa-file-bugs` can run |
+| `.claude/qa-config.md` (existence, and whether it still says `CHƯA ĐIỀN`) | whether the QA harness is installed here, and whether `/tlm-qa-file-bugs` can run |
 | `openspec/` (existence) | whether spec-driven is available per ticket |
 
 A token's **value** never needs reading and you must not print one. Whether a key is present, and
@@ -50,13 +50,13 @@ Decide in this order. The first that matches wins, and you stop.
    is present and not a placeholder; if it is not, say so — that skill hard-stops rather than
    inventing a design, and the caller should know before it starts, not after.
 3. **A ticket id with a QA intent** — test this ticket, checklist test, viết test case, chạy test,
-   bug from a failed case, verify production, any `/qa-*` command → `tlm-qa-workflow`. It routes into
-   the QA harness's own `/qa-*` stages; check `.claude/qa-config.md` exists (installed) and is filled.
+   bug from a failed case, verify production, any `/tlm-qa-*` command → `tlm-qa-workflow`. It routes into
+   the QA harness's own `/tlm-qa-*` stages; check `.claude/qa-config.md` exists (installed) and is filled.
    Not installed is not a dead end — that skill installs it from the vendored copy first.
 4. **A ticket id or ticket URL** (implementing, not testing) → `tlm-ticket-workflow`. Requires
    `tlm.tickets.enabled` and a connected tracker.
 5. **A requirement or bug described in chat, with no ticket yet** → `tlm-ba-ticket`. A bug that is a
-   *failed test case* of a QA run is not this — that is `/qa-file-bugs`, which de-duplicates and
+   *failed test case* of a QA run is not this — that is `/tlm-qa-file-bugs`, which de-duplicates and
    writes the Bug ID back to the Excel.
 6. **A commit range, or "release notes"** → `tlm-mobile-release-notes` for a mobile repo,
    `tlm-deployment-checklist` for "release check" / "what ships". If the repo is not mobile and the

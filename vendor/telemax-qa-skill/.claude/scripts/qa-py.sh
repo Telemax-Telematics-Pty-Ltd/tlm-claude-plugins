@@ -4,7 +4,7 @@
 #   bash .claude/scripts/qa-py.sh <đường-dẫn-script.py> [tham số...]
 #
 # Ví dụ:
-#   bash .claude/scripts/qa-py.sh .claude/skills/testcase-template/scripts/build.py \
+#   bash .claude/scripts/qa-py.sh .claude/skills/tlm-qa-testcase-template/scripts/build.py \
 #        --input cases.json --template <template> --output <out.xlsx>
 #
 # Vì sao cần: `pip install openpyxl` THẤT BẠI trên macOS (Homebrew) và Ubuntu 23+ với
@@ -13,7 +13,7 @@
 # mà session sau không biết đường tìm.
 #
 # Thứ tự ưu tiên:
-#   1. .claude/.venv/bin/python          (venv chuẩn của harness, do /qa-setup tạo)
+#   1. .claude/.venv/bin/python          (venv chuẩn của harness, do /tlm-qa-setup tạo)
 #   2. $QA_PYTHON                        (người dùng chỉ định thủ công)
 #   3. python3 hệ thống, NẾU import được openpyxl
 #   4. thất bại, in đúng ba cách cài
@@ -57,7 +57,7 @@ PY="$(pick)" || {
   cat >&2 <<'MSG'
 Không tìm thấy Python nào có openpyxl.
 
-Cách chuẩn của harness (chạy một lần, /qa-setup cũng làm bước này):
+Cách chuẩn của harness (chạy một lần, /tlm-qa-setup cũng làm bước này):
 
     python3 -m venv .claude/.venv
     .claude/.venv/bin/python -m pip install openpyxl

@@ -6,6 +6,27 @@ Mọi giá trị phụ thuộc team/repo nằm ở đây, không rải trong ski
 **Điền một lần khi cài đặt.** Giá trị còn `CHƯA ĐIỀN` là điều kiện chưa thoả: agent
 phải DỪNG và hỏi người dùng, không được đoán.
 
+## Cách đọc file này — ĐỌC THEO MỤC, đừng `cat` cả file
+
+```bash
+bash .claude/scripts/qa-config.sh <mục>
+```
+
+| Mục | Ai cần | Dòng |
+|---|---|---|
+| `ticket` | `/tlm-qa-analyze`, `/tlm-qa-run`, `/tlm-qa-verify-prod`, `tlm-qa-git-diff-scope` | 25 |
+| `clickup` | `/tlm-qa-file-bugs`, `bug-proposer`, `bug-filer`, `tlm-qa-clickup-bug-format` | 13 |
+| `playwright` | `/tlm-qa-run`, `/tlm-qa-setup`, `test-runner`, `tlm-qa-playwright-export` | 34 |
+| `production` | `/tlm-qa-verify-prod`, `prod-verifier` | 17 |
+| `postman` | `/tlm-qa-run`, `test-runner`, `tlm-qa-postman-api-test` | 23 |
+| `all` | chỉ `/tlm-qa-setup` khi soát toàn bộ | 120 |
+
+Mục Playwright một mình dài hơn cả bốn mục kia cộng lại và chẳng liên quan gì tới
+`/tlm-qa-file-bugs`. Đọc cả file để lấy một bảng là trả tiền cho bốn bảng không dùng.
+
+Vẫn giữ **một file** thay vì tách năm: tách ra là mở đường cho hai bản trôi lệch,
+đúng thứ mà "điểm khai báo duy nhất" đang phòng.
+
 ## Ticket & môi trường
 
 | Khoá | Giá trị |
@@ -17,8 +38,8 @@ phải DỪNG và hỏi người dùng, không được đoán.
 
 | Môi trường | Build từ nhánh | Dùng ở chặng |
 |---|---|---|
-| **dashboard-stage** | **`stage`** | `/qa-run` — test chính |
-| **production** | **`master`** | `/qa-verify-prod` — verify sau deploy |
+| **dashboard-stage** | **`stage`** | `/tlm-qa-run` — test chính |
+| **production** | **`master`** | `/tlm-qa-verify-prod` — verify sau deploy |
 
 Đường đi của code: nhánh feature → **`stage`** (lên dashboard-stage, test ở đây) →
 **`master`** (lên production, verify lại ở đây).
@@ -27,11 +48,11 @@ phải DỪNG và hỏi người dùng, không được đoán.
 `master` — `master` là bản đã lên production, so với nó sẽ lôi vào cả những thay đổi
 đang nằm trên staging của ticket khác, làm mục G (Impact) sai.
 
-**Hệ quả cho `/qa-run`:** code của ticket phải **đã merge vào `stage` và đã build lên
+**Hệ quả cho `/tlm-qa-run`:** code của ticket phải **đã merge vào `stage` và đã build lên
 dashboard-stage** thì test mới đo đúng bản đó. Chưa merge mà chạy test là đang đo bản
 cũ rồi ghi kết quả cho ticket mới — sai âm thầm, vì test vẫn chạy và vẫn ra số.
 
-## ClickUp (dùng bởi `clickup-bug-format`, `bug-filer`)
+## ClickUp (dùng bởi `tlm-qa-clickup-bug-format`, `bug-proposer`, `bug-filer`)
 
 | Khoá | Giá trị |
 |---|---|
@@ -41,42 +62,47 @@ cũ rồi ghi kết quả cho ticket mới — sai âm thầm, vì test vẫn ch
 | Map priority | test case `High` → ClickUp `High`; `Medium` → `Normal`; `Low` → `Low`. Sửa nếu team có thang riêng |
 | Rule assign | đề xuất từ commit đụng file lỗi, **chờ người dùng duyệt** trước khi gán |
 | Ngôn ngữ bug | tiếng Anh (cùng ngôn ngữ sheet "Test Cases" EN) |
+| Connector Google Drive | `CHƯA ĐIỀN` — harness **không** tự bật được. Chưa có thì `/tlm-qa-file-bugs` bỏ bước upload và dùng fallback đính file vào task ClickUp |
 
 Tạo bug vào nhầm list là rác cho người khác dọn. Còn `CHƯA ĐIỀN` thì dừng và hỏi.
 
-## Playwright (dùng bởi `playwright-export`, `test-runner`)
+## Playwright (dùng bởi `tlm-qa-playwright-export`, `test-runner`)
 
 | Khoá | Giá trị |
 |---|---|
+| **Trạng thái** | **`CÓ`** · giá trị khác: `CHƯA CÓ` · `KHÔNG DÙNG` (nghĩa của từng cái ở cuối mục) |
 | Thư mục project | `telemax-e2e/` ở gốc repo. **Mọi lệnh `npx playwright` phải chạy từ trong thư mục này** — agent đứng ở gốc repo nên luôn `cd telemax-e2e &&` trước |
 | File spec | `telemax-e2e/tests/TLM-XXXX.spec.ts` |
 | Config | `telemax-e2e/playwright.config.ts` |
 | Login | `auth.setup.ts` + `storageState` — spec KHÔNG chứa bước đăng nhập |
-| Trình duyệt lúc chạy | **Phase 1 qua MCP: HIỆN cửa sổ** (`@playwright/mcp` mặc định headed) — bạn nhìn thấy agent thao tác. Thêm `--headless` vào args trong `.mcp.json` nếu muốn chạy ngầm. **Chạy spec bằng `npx playwright test`: NGẦM** — thêm `--headed` nếu muốn nhìn |
-| Gộp còn MỘT session | **ĐÃ THỬ — KHÔNG DÙNG ĐƯỢC.** `--isolated --storage-state <user.json>` không nạp được session: mọi lệnh MCP vẫn rơi về `/login` ngay sau khi `npm run auth` báo lưu thành công. Thử cả đường dẫn tương đối lẫn tuyệt đối, như nhau. Nguyên nhân: session Telemax nằm **100% trong localStorage, 0 cookie** (`user.json` có `cookies: []`, 12 key trong `origins[0].localStorage`), và MCP không nạp phần đó. **Hai session tách biệt — profile MCP và `user.json` của code — là thiết kế, không phải thiếu sót cần tối ưu.** Đừng thử lại |
-| Đã thử, đừng thử lại | `browser_run_code_unsafe` **không có filesystem**: `require('fs')` → `ReferenceError`, `await import('node:fs/promises')` → `ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING`. Nên **không** bơm được storage state từ file vào context MCP; mọi ý tưởng "đọc `user.json` rồi `localStorage.setItem`" đều chết ở đây. Cách duy nhất là seed profile bằng tiến trình Node riêng |
+| Trình duyệt lúc chạy | **Phase 1 qua MCP: HIỆN cửa sổ** (`@playwright/mcp` mặc định headed) — bạn nhìn thấy agent thao tác. Thêm `--headless` vào args trong `.mcp.json` nếu muốn chạy ngầm. **Chạy spec bằng `npx playwright test --project=chromium`: NGẦM** — thêm `--headed` nếu muốn nhìn |
+| Gộp còn MỘT session | **ĐÃ THỬ — KHÔNG DÙNG ĐƯỢC, đừng thử lại.** Hai session tách biệt là thiết kế. Biên bản: [docs/DEAD-ENDS.md](../docs/DEAD-ENDS.md) §1 |
+| Đã thử, đừng thử lại | Không bơm được storage state vào context MCP bằng JS — `browser_run_code_unsafe` không có filesystem. Chỉ seed được bằng tiến trình Node riêng. Biên bản: [docs/DEAD-ENDS.md](../docs/DEAD-ENDS.md) §2 |
 | Timeout của MCP | `--timeout-action 30000` (mặc định chỉ **5s** — quá ngắn cho SPA này) · `--timeout-navigation 120000` (mặc định 60s; lần mở đầu tiên trong ngày có thể lâu hơn) · `--timeout-settle 1000`. Khai báo sẵn trong `.mcp.json` |
 | Bằng chứng Phase 1 | MCP ghi ảnh vào `.playwright-mcp-output/` (`--output-dir`); `test-runner` gom về `.qa/TLM-XXXX/phase1/` bằng một lệnh `mv` sau khi chạy xong |
 | Tiết kiệm token khi chụp nhiều | Thêm `--image-responses omit` vào args: ảnh vẫn được LƯU nhưng không nạp vào context. Đổi lại agent mất khả năng kiểm bằng mắt — chỉ bật khi case không cần đối chiếu hình ảnh |
 | Session của MCP | `.playwright-mcp-profile/` (khai báo bằng `--user-data-dir` trong `.mcp.json`, đã gitignore). **Sống qua các lần chạy** — đăng nhập một lần dùng mãi tới khi hết hạn. Không khai báo thì MCP tạo thư mục tạm và mất session sau mỗi lần khởi động lại |
 | Session của code | `telemax-e2e/playwright/.auth/user.json`, tạo bằng `npm run auth:headed`. **Tách biệt** với session MCP — hai đường chạy, hai session |
+| Selector form đăng nhập | `LOGIN_PATH` · `LOGIN_EMAIL` · `LOGIN_PASSWORD` · `LOGIN_SUBMIT` · `LOGIN_2FA` · `LOGIN_REMEMBER` trong `<project e2e>/.env` — bỏ trống thì script dùng mặc định của form Telemax. Tiền tố: `placeholder:` (mặc định) · `label:` · `testid:` · `text:` · `css:` · `role:<vai>/<tên>`. Khuôn và ví dụ ở `.env.example` |
 | Tài khoản đăng nhập | `TELEMAX_USER` / `TELEMAX_PASS` trong `telemax-e2e/.env`. **KHÔNG điền form bằng MCP** — `browser_type({text: "<mật khẩu>"})` để lộ mật khẩu nguyên văn trong transcript. Đăng nhập bằng `node .claude/scripts/seed-mcp-profile.mjs`, script đọc `.env` trong tiến trình riêng |
 | Thứ tự seed | Chạy script **TRƯỚC khi gọi bất kỳ tool MCP nào**. MCP khởi động browser lười, nhưng đã khởi động rồi thì giữ lock trên thư mục profile và script sẽ không mở được |
-| Hết session giữa chặng | Probe `localStorage` trên `/favicon.ico` trước: có `authToken_*` → hết hạn thật, **kết thúc chặng** và bảo người dùng thoát → chạy `seed-mcp-profile.mjs` → mở lại (agent không seed được vì MCP đang giữ lock, và không được điền form bằng MCP). Chỉ có `app-version` → profile trống, seed lại vô ích cho tới khi sửa cấu hình. Case đang test chính việc giữ đăng nhập thì bị đẩy ra **là kết quả**, không phải sự cố |
-| 2FA | Tài khoản QA hiện tại **đã tắt**. Bật lại thì agent dừng ở màn nhập mã và chờ người dùng gõ `ok` (xem `/qa-login`) |
-| Reset giữa các case | Ba mức, dùng mức nhẹ nhất còn hiệu quả: **1** cùng màn hình → đóng modal/xoá filter, không điều hướng · **2** khác màn hình → bấm menu trong app · **3** kẹt trạng thái → `browser_navigate` về `/` rồi vào trang case. Chỉ mức 3 tốn 10–30 giây (tải lại bundle), nên đừng mặc định dùng nó |
-| Thứ tự chạy | Gom case theo màn hình để phần lớn reset rơi vào mức 1 |
-| Chờ sau khi điều hướng | Chờ **tín hiệu dương** — phần tử chứa dữ liệu thật xuất hiện. Không chờ cứng, không dùng `networkidle` (màn hình realtime giữ kết nối stream nên không bao giờ idle) |
-| Vòng đời trình duyệt | **Một phiên duy nhất cho mọi lệnh.** Mở một lần, **không bao giờ đóng** — kể cả khi chặng xong. Lệnh sau dùng lại ngay; browser tự tắt khi thoát Claude Code. Đổi lại: mở đầu mỗi case phải reset trạng thái theo ba mức ở dòng dưới |
+| Vận hành trình duyệt ở Phase 1 | Vòng đời một-phiên · ba mức reset · chờ bằng tín hiệu dương · xử khi bị đẩy về login — **[agents/reference/phase1-browser.md](agents/reference/phase1-browser.md)**. Để ở đó vì chỉ nhánh dò-bằng-MCP cần, còn mục này thì mọi chặng đều đọc |
+| 2FA | Tài khoản QA hiện tại **đã tắt**. Bật lại thì agent dừng ở màn nhập mã và chờ người dùng gõ `ok` (xem `/tlm-qa-login`) |
 | Phạm vi MCP | **CHỈ dùng bản project (`.mcp.json` ở gốc repo).** Máy có thêm server `playwright` ở scope `local` hoặc `user` là **xung đột**: chỉ một bản thắng, và bản thắng có thể không mang các tham số dưới. Gỡ bản kia bằng `claude mcp remove playwright -s local` (hoặc `-s user`) rồi khởi động lại session |
-| Triệu chứng xung đột scope | Cấu hình trong `.mcp.json` **như không tồn tại**: `--timeout-action` vẫn 5s, và seed profile xong vẫn rơi về `/login` vì bản thắng dùng thư mục tạm chứ không phải `.playwright-mcp-profile/`. Không có thông báo lỗi nào — kiểm bằng `claude mcp list` |
+| Triệu chứng xung đột scope | Cấu hình `.mcp.json` **như không tồn tại**, không có lỗi nào báo — kiểm bằng `claude mcp list`. Bảng triệu chứng ↔ chẩn nhầm: [docs/DEAD-ENDS.md](../docs/DEAD-ENDS.md) §3 |
 | MCP Playwright | Đã kèm sẵn trong `.mcp.json` ở **gốc repo**. Repo có `.mcp.json` riêng thì merge thêm: `claude mcp add playwright -- npx -y @playwright/mcp@latest`. Cần cho Phase 1 (dò element); case đã có spec thì không cần |
 | Trình duyệt | `cd telemax-e2e && npx playwright install chromium` (thêm `install-deps chromium` nếu chạy trong container/CI) |
 | Tên file spec | `telemax-e2e/tests/TLM-XXXX.spec.ts` — **một file cho một ticket**, chứa toàn bộ case UI của ticket |
 | Describe block | tên màn hình, giữ nhất quán giữa các ticket (để chạy regression theo màn hình) |
 | Tiêu đề test | `TC-Y-NNN — <mô tả>` — chạy theo TC ID thì **luôn kèm đường dẫn file** |
 
-Project chưa tồn tại → DỪNG, báo người dùng init trước. Không tự tạo project.
+| Trạng thái | Nghĩa |
+|---|---|
+| `CÓ` + thư mục **không** tồn tại | **SAI CẤU HÌNH**, không phải "chưa có": DỪNG, báo. Không tự tạo, không đoán vị trí khác |
+| `CHƯA CÓ` | chạy `/tlm-qa-setup` — skill `tlm-qa-e2e-scaffold` dò repo, hỏi, rồi dựng. Agent KHÔNG tự init giữa chặng test |
+| `KHÔNG DÙNG` | nhánh UI **skip, KHÔNG chặn `/tlm-qa-run`**: case UI ghi `Blocked` + `[MANUAL] không dùng project e2e — chạy tay`. Hợp lệ khi repo chỉ có API, hoặc team dùng framework khác |
+
+Cùng quy ước với mục Postman.
 
 ## Production (dùng bởi `prod-verifier`)
 
@@ -95,7 +121,7 @@ phía bỏ sót có chủ đích — bỏ sót một case còn sửa được, s
 
 KHÔNG dùng MCP Playwright trên production trong bất kỳ trường hợp nào.
 
-## Postman / newman (dùng bởi `postman-api-test`, `test-runner`)
+## Postman / newman (dùng bởi `tlm-qa-postman-api-test`, `test-runner`)
 
 | Khoá | Giá trị |
 |---|---|
@@ -104,7 +130,7 @@ KHÔNG dùng MCP Playwright trên production trong bất kỳ trường hợp n�
 | Environment | `tests/postman/environments/staging.postman_environment.json` |
 | Report | `.qa/TLM-XXXX/result.json` — gom theo ticket, không để ở gốc repo |
 
-**Khi Trạng thái là `CHƯA CÓ`:** nhánh API được **skip, KHÔNG chặn cả chặng `/qa-run`**.
+**Khi Trạng thái là `CHƯA CÓ`:** nhánh API được **skip, KHÔNG chặn cả chặng `/tlm-qa-run`**.
 Case API ghi `Blocked` + Note `[MANUAL] chưa có Postman collection — chờ bổ sung`, và
 `test-runner` phải báo rõ số case bị skip trong tổng kết. Nhánh UI vẫn chạy bình thường.
 
@@ -112,7 +138,7 @@ Marker `[MANUAL]` khiến `write_defects.py` không tạo defect cho các case n
 mong muốn: chưa chạy thì chưa biết đúng sai, không phải là bug.
 
 **Khi đã có collection:** đổi Trạng thái thành `CÓ`, xác nhận hai đường dẫn trên đúng
-với repo thật, rồi chạy lại `/qa-run` — các case đang `[MANUAL] chưa có Postman
+với repo thật, rồi chạy lại `/tlm-qa-run` — các case đang `[MANUAL] chưa có Postman
 collection` sẽ được chạy thật ở round tiếp theo.
 
 File environment chứa token/secret **không commit**. Trạng thái là `CÓ` mà collection
