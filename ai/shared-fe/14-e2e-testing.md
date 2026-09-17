@@ -6,11 +6,19 @@ is quietly failing.
 
 ---
 
+> **Telemax policy (Next.js / React projects) — REQUIRED, not opt-in.**
+> For any Telemax web project on Next.js or React, every **new or changed feature** MUST ship with an
+> E2E Playwright spec, and **writing/updating tests for a feature means its E2E spec too** — not just
+> unit tests. Still put the coverage line in the plan (§1), but as a **commitment**, not a question to
+> strike out. The "ask first / opt-in" guidance below applies only to non-Telemax projects. Everything
+> else in this file (the sweep, exact-status checks, session seeding, keep-it-small) applies as written.
+
 ## 1. Ask before you write one. Ask at PLAN time, not after.
 
 E2E is the only test layer that costs real wall clock, needs a browser and a running server, and goes
-stale the moment a route moves. So it is **opt-in per feature**, and the moment to raise it is while
-the plan is still being agreed — not once the code is written and the answer is expensive either way.
+stale the moment a route moves. So it is **opt-in per feature** (except Telemax — see the policy note
+above), and the moment to raise it is while the plan is still being agreed — not once the code is
+written and the answer is expensive either way.
 
 Put it in the plan as a line the user can strike out:
 
