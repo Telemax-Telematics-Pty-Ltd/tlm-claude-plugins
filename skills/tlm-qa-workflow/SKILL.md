@@ -94,6 +94,20 @@ journal against the artifacts actually on disk and names the one next stage to r
   TC ID not row number, and `Won't fix` (not row deletion) is the refusal signal. The harness's
   `write_defects.py` already encodes this; use it.
 
+## Telemax QA focus — test against business logic, not code convention
+
+QA/QC here validates **behaviour against Telemax business rules**, not source style.
+
+- **Refer to Telemax business logic** when analysing a ticket and writing cases. Read the rules under
+  `${CLAUDE_PLUGIN_ROOT}/ai/telemax2-knowledge/` (e.g. company-hierarchy visibility: a user assigned to
+  any company sees its whole subtree; suspension cascades down the tree) and turn each into concrete
+  test cases and edge cases. A feature is "correct" only if it matches the business rule, even when the
+  screen looks fine.
+- **Do NOT review code convention** — naming, formatting, file layout, lint/style are out of scope for
+  QA. Those belong to code review, not the test pass. Don't file bugs for them.
+- **Cover the business edge cases the rules call out** — e.g. empty/none, soft-deleted, suspended
+  ancestor, hierarchy depth — not just the happy path.
+
 The harness's README (`${CLAUDE_PLUGIN_ROOT}/vendor/telemax-qa-skill/README.md`) is the manual —
 install traps, token budget, diagnostics table (`docs/TESTING.md`). Read it on demand, don't inline
 it here.
