@@ -68,6 +68,33 @@ is an N+1 with no upside.
 
 ---
 
+## Hierarchy / tree walks — one query per level, not per node
+
+Walking a parent chain (ancestors) or a subtree (descendants) is the same trap in disguise: a query per
+node — or worse, a full per-node walk repeated once per root — is an N+1 that scales with the tree size.
+
+- ❌ **Per-root ancestor walk** — `foreach (root) await HasSuspendedAncestorAsync(root.ParentId)`, each
+  doing one query per level. 100 roots over a 5-level chain ≈ 500 sequential round-trips.
+- ✅ **Frontier batching** — gather all ids at a level, query the whole level once, repeat:
+
+```csharp
+var pending = startIds.ToList();
+while (pending.Count > 0)
+{
+    var level = await db.Companies.AsNoTracking()
+        .Where(c => pending.Contains(c.Id))          // one query for the entire level
+        .Select(c => new { c.Id, c.ParentId, c.IsSuspended })
+        .ToListAsync(ct);
+    /* record level into a map, compute next frontier from parents */
+}
+// resolve each node against the in-memory map — no more DB access
+```
+
+Round-trips become `O(depth)`, independent of node/root count. Also **don't load the whole table** to serve
+a request that only needs one user's subtree — query to the actual scope. (Origin: TLM-3165 review.)
+
+---
+
 ## Exceptions — "unless there is no other way"
 
 A per-item call is acceptable only when batching is genuinely unavailable, and then you must **bound** and
