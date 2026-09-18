@@ -331,6 +331,12 @@ constantly. The full set is in `skills/tlm-fe-coding/SKILL.md`; the load-bearing
   `TextPrimary`), only `Base*` primitives may render raw/semantic DOM.
 - Navigate with `<Link>` (web) / `router.navigate` (RN) — **never** `onClick`+`push`; `push`/`replace`
   are for post-action redirects only.
+- **The Telemax Design System is the visual source of truth for every UI task**, web and RN alike
+  (`ai/shared-fe/19-design-system.md`, mirrored from the Claude Design project of that name): cobalt
+  `#0075FF` as the one hero colour, warm off-white `#F7F7F5` canvas, white borderless 12px cards with
+  `shadow-sm`, traffic-light semantics with a glyph, the red→green health ramp as the only gradient,
+  Montserrat + JetBrains Mono, Lucide icons, no emoji. A value with no token is **escalated, not
+  invented** — a Figma value that has none is snapped to the nearest token and the snap is reported.
 - No `as any` / `@ts-ignore`; no hardcoded hex (design tokens); i18n via `t()`; null-safe display via
   `safeString` / `joinText` / `joinWith`; Zod + React Hook Form (`register`-first).
 - **Zod contract-first**: schemas are the source of truth (`z.infer` for types); consumed responses are

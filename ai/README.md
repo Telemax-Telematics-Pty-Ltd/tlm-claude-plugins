@@ -25,7 +25,8 @@ ai/
 │   ├── 15-zod-contract-first.md # Schemas are the source of truth; responses parsed, never `as T`
 │   ├── 16-monorepo-turborepo.md # Multi-app products: Turborepo, apps/* + packages/contracts
 │   ├── 17-email-templates.md    # Transactional email markup + tokens
-│   └── 18-working-language.md   # Conversation language (per-user, memory) vs. artifact language (English)
+│   ├── 18-working-language.md   # Conversation language (per-user, memory) vs. artifact language (English)
+│   └── 19-design-system.md      # ★ Telemax Design System — tokens, component specs, copy rules
 ├── shared-be/                   # Cross-stack backend rules (Prisma, EF Core, any ORM)
 │   ├── 01-avoid-n-plus-1-queries.md # Load related data in one round-trip; no query-per-item loops
 │   └── 02-mirror-source-property-names.md # Pass-through props keep the source field's name
@@ -83,8 +84,9 @@ ai/
    ```
    1. shared-fe/01-project-overview.md      (Tech stack & philosophy)
    2. [router]/01-architecture.md        (Framework-specific setup)
-   3. shared-fe/02-styling-ui-conventions.md (UI patterns)
-   4. shared-fe/03-component-patterns.md    (Component rules)
+   3. shared-fe/19-design-system.md      (Telemax tokens — install these FIRST)
+   4. shared-fe/02-styling-ui-conventions.md (UI patterns)
+   5. shared-fe/03-component-patterns.md    (Component rules)
    5. [router]/03-api-data-flow.md       (Data fetching)
    6. shared-fe/05-validation-patterns.md   (Forms & validation)
    ```
@@ -311,7 +313,9 @@ Types/Models:   PascalCase.ts         (ModelProduct.ts)
 
 - **Where do I put this component?** → shared-fe/03-component-patterns.md
 - **How do I fetch data?** → [router]/03-api-data-flow.md
-- **How do I style components?** → shared-fe/02-styling-ui-conventions.md
+- **What colour / font / radius / spacing do I use?** → shared-fe/19-design-system.md (the tokens are
+  not a per-screen decision — this file is the visual source of truth for web AND React Native)
+- **How do I style components?** → shared-fe/02-styling-ui-conventions.md (mechanics; values live in 19)
 - **How do I validate forms?** → shared-fe/05-validation-patterns.md
 - **How do I navigate?** → [router]/02-routing-structure.md
 - **How should an AI/new contributor generate code here?** → shared-fe/07-ai-workflow-integration.md
@@ -352,6 +356,26 @@ For questions or clarifications:
 ---
 
 ## 🔄 Version History
+
+- **v1.8** (2026-09): The Telemax Design System becomes the visual source of truth
+  - New `shared-fe/19-design-system.md` — the full token set mirrored from the Claude Design project
+    "Telemax Design System" (brand/neutral/semantic colour, the 5-stop health ramp, Montserrat +
+    JetBrains Mono type scale, 4px spacing grid, radii, shadows, motion), plus component specs lifted
+    from its reference UI kit, the Lucide iconography rules, and the CONTENT FUNDAMENTALS copy rules
+    (Title Case labels, declarative voice, numbers-first, no pronouns, domain vocabulary verbatim)
+  - Install blocks for both platforms: a Tailwind v4 `@theme inline` bridge over a verbatim
+    `telemax-tokens.css` mirror (deliberately remapping stock `rounded-*`/`shadow-*`), and a typed RN
+    theme constants module — with the RN caveat that `fontWeight` needs a named weight family
+  - `tlm-fe-coding` §5 carries the short form; "Before finishing any component" gains the token pass
+  - **CORRECTION** — `tlm-figma-to-code` PHASE 3 used to say a Figma hex goes into the `@theme`. It
+    does not: a Figma value is **snapped to the nearest existing token and the snap is reported**;
+    only a genuinely new value stops and asks. Frames drift, and honouring the drift silently is how
+    a design system dies one screen at a time
+  - `hooks/lint-fe.mjs` enforces the pattern-detectable subset — arbitrary radius/shadow/spacing/size/
+    font-family, stock-palette classes (`bg-gray-50`, `bg-blue-500`), `outline-none` with no
+    replacement focus ring in the file, and emoji/Unicode pictographs
+  - `07-ai-workflow-integration.md` §9d — the design-token pass, and what the linter cannot judge
+  - `02-styling-ui-conventions.md` now states it owns the mechanics, not the values
 
 - **v1.7** (2026-09): E2E, sibling-repo UI, and states that get clipped
   - New `shared-fe/14-e2e-testing.md` — Playwright. Every common page asserts **no undeclared 4xx or

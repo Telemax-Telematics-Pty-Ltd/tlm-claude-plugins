@@ -209,6 +209,12 @@ differently-shaped real type. That mismatch is exactly how wrong data ships sile
 - **Never write UI code without a successful design fetch.** No guessing, no approximating from a
   frame name or screenshot. Blocked means blocked — report why and stop.
 - Match the design closely; when something is ambiguous, ask rather than invent.
+- **The Telemax Design System still applies to a Figma build.** A frame that is missing a focus ring,
+  uses a color-only status, or draws a second gradient does not override the system — build it to the
+  system and say so. See `ai/shared-fe/19-design-system.md` §0 for the full authority order.
+- **The Telemax Design System still applies to a Figma build.** A frame that is missing a focus ring,
+  uses a color-only status, or draws a second gradient does not override the system — build it to the
+  system and say so. See `ai/shared-fe/19-design-system.md` §0 for the full authority order.
 - Never inline a Figma token into code or a committed file; never print it back.
 - Conventions come from `tlm-fe-coding` — don't restate or contradict them here.
 - English for all code, comments, and identifiers.

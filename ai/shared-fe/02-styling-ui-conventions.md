@@ -1,5 +1,11 @@
 # Styling & UI Library Conventions
 
+> **This file teaches the mechanics; it does not own the values.** The colours, type scale, spacing,
+> radii and shadows every Telemax screen must use come from
+> [`19-design-system.md`](./19-design-system.md) — including the ready-to-paste Tailwind v4 `@theme`
+> block and the React Native theme module. The palettes shown below are **illustrative examples of how
+> to wire a config**, not the Telemax palette; where they differ, `19-design-system.md` wins.
+
 ## CSS Architecture
 
 ### 1. Tailwind CSS Configuration

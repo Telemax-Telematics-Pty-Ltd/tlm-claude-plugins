@@ -472,6 +472,21 @@ sits below it to shift.
 
 ### 5. Styling
 
+**Every screen follows the Telemax Design System (MUST).** It is the house visual source of truth for
+web AND React Native — not a per-project choice. The load-bearing five:
+primary cobalt **`#0075FF`** (nav, CTA, active, links — an identity, not a decorative accent) ·
+app background warm off-white **`#F7F7F5`** (never `gray-50`) ·
+cards **white, NO border, `rounded-lg` (12px), `shadow-sm`, 20–24px padding** ·
+status = semantic red `#F04438` / orange `#F79009` / green `#12B76A` on their 50-level tint,
+always **color + a Lucide glyph**, never color alone ·
+the red→orange→yellow→green **health gradient is the ONLY gradient**, and it is always labelled
+`Critical ← → Optimal`. Type is **Montserrat** (KPI numerals & headings weight **800**) +
+**JetBrains Mono** for IMEIs/voltages; no third font, **no emoji, no Unicode pictographs**.
+Radii 10px inputs/buttons, 12px cards, 999px pills — nothing is square. Focus ring
+`focus-visible:shadow-focus` is never removed. A value the system has no token for is **escalated,
+not invented** — including a dark theme (none is specified).
+→ `ai/shared-fe/19-design-system.md` (full token set, component specs, `@theme` + RN theme install)
+
 - Web: layout via `Col` / `Row` + Tailwind utility classes; text via `TextPrimary`. RN: `StyleSheet.create`
   + theme constants (no NativeWind).
 - Build in-house `Base*` primitives; screens use those, never raw framework UI kits.
@@ -483,8 +498,10 @@ sits below it to shift.
   either, state it explicitly on any custom pressable `Base*` (a styled `<div>`/`<a>` acting as a
   button) so the rule holds regardless of element type or future Preflight changes.
 - Design tokens live in ONE place — Tailwind v4 `@theme` in global CSS, v3 `theme.extend` in the config,
-  RN a theme constants module. **Never hardcode hex in components** (`bg-[#0075ff]`, inline styles).
-  A new color is a token change, not a per-component decision.
+  RN a theme constants module. **Never hardcode a hex, px size, radius, shadow or font-family in a
+  component** (`bg-[#0075ff]`, `rounded-[12px]`, `p-[22px]`, inline styles) — and a stock-palette class
+  (`bg-blue-500`) is the same violation, because it is not the Telemax blue. A new value is a **token
+  change owned by design**, not a per-component decision: if the system has no token for it, stop and ask.
 - Wrap all display strings in `t()` (i18next) — never hardcode.
 - **Mobile-first, and a single drawn width is not an excuse.** Order breakpoints small-to-large
   (unprefixed = small, `lg:` = the drawn width — never `sm:` as "mobile"). A design drawn at 1440 only
@@ -670,6 +687,12 @@ props, empty states visible, API types mirroring the backend.
 Plus: run the **affordance pass** — `ai/shared-fe/12-interactive-affordances.md` §5, with the screen
 open. Tailwind v4 dropped `cursor: pointer` from `<button>`, so a pressable that reads correctly in the
 diff can still have no hand cursor, no focus ring and a 16px hit target.
+
+Plus: run the **design-token pass** — `ai/shared-fe/19-design-system.md` §11. Zero raw hex / px /
+radius / shadow / font-family in components; `bg-bg` page and borderless `shadow-sm` cards; status is
+color **and** glyph; KPI numerals weight 800; focus ring present. **Any Figma value you had to snap to
+a token is listed in your summary** as `Figma <value> → <token>` — a silent mapping is how the system
+drifts one screen at a time.
 
 Plus: **every cross-repo contract you used came from a file you actually opened**, not from a shape that
 looked right (STEP 1.5). If you had to assume one, say so explicitly in your summary.

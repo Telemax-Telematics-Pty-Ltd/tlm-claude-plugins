@@ -56,9 +56,12 @@ if (
 // rule is JSX-only.
 const skipHtml = base.startsWith('Base') || !posix.endsWith('.tsx')
 
-// token/theme/config files are where hex is SUPPOSED to live
+// token/theme/config files are where raw design values are SUPPOSED to live — the
+// Telemax Design System mirror, the Tailwind config, and the RN theme constants module
+// are the ONE place per platform that may spell a hex, a px size, a radius or a shadow.
 const skipHex =
   posix.includes('tailwind.config') ||
+  posix.includes('telemax-tokens') ||
   /[Tt]heme/.test(posix) ||
   /[Cc]olors/.test(posix) ||
   posix.includes('/config/') ||
@@ -106,7 +109,54 @@ if (!skipHex) {
     '(\\[#[0-9a-fA-F]{3,8}\\]|#[0-9a-fA-F]{6}([^0-9a-fA-F]|$)|#[0-9a-fA-F]{3}([^0-9a-fA-F]|$))',
     'hardcoded hex color — move it to a design token (Tailwind @theme / theme constants) and use it by name'
   )
+
+  // --- Telemax Design System: arbitrary values off the token scale ----------
+  // ai/shared-fe/19-design-system.md Rule 1. Each of these is a value the system
+  // already has a token for, so an arbitrary value is a silent divergence.
+  scan(
+    'rounded-\\[',
+    'arbitrary border radius — Telemax radii are tokens: rounded-md (10px inputs/buttons), rounded-lg (12px cards), rounded-pill (999px). See ai/shared-fe/19-design-system.md §2.6'
+  )
+  scan(
+    'shadow-\\[',
+    'arbitrary box-shadow — use the elevation tokens shadow-xs / shadow-sm (cards) / shadow-md / shadow-lg / shadow-focus. See ai/shared-fe/19-design-system.md §2.7'
+  )
+  scan(
+    '(^|["\\s`])-?(p|px|py|pt|pb|pl|pr|m|mx|my|mt|mb|ml|mr|gap|gap-x|gap-y|space-x|space-y)-\\[[0-9.]',
+    'arbitrary spacing — Telemax is a 4px grid and it IS Tailwind\'s scale (p-6 = 24px, p-10 = 40px). Use the numbered utility. See ai/shared-fe/19-design-system.md §2.5'
+  )
+  scan(
+    '(^|["\\s`])text-\\[[0-9.]',
+    'arbitrary font size — use a type token: text-h1/h2/h3, text-kpi, text-body, text-label, text-caption, text-micro, text-nav. They carry size + line-height + weight together. See ai/shared-fe/19-design-system.md §2.4'
+  )
+  scan(
+    '(^|["\\s`])font-\\[',
+    'arbitrary font-family — the Telemax system ships Montserrat (font-sans) and JetBrains Mono (font-mono) only. See ai/shared-fe/19-design-system.md Rule 8'
+  )
+  // Stock Tailwind palette: renders fine, but it is NOT the Telemax palette. The
+  // classic tell is bg-gray-50 as the page and bg-blue-500 as "primary".
+  scan(
+    '(^|["\\s`:])(bg|text|border|ring|fill|stroke|from|via|to|divide|outline|shadow|accent|decoration|placeholder|caret)-(slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-(50|[1-9]00|950)([^0-9]|$)',
+    'stock Tailwind palette class — not the Telemax palette. Use the semantic tokens: bg-bg (page #F7F7F5), bg-surface (card), text-text-1/2/3/4, border-border, bg-primary, text-success/warning/critical. See ai/shared-fe/19-design-system.md §2'
+  )
 }
+
+// A focus ring is never removed. File-level guard rather than per-line so an element
+// that restores the ring elsewhere in the same file is not flagged.
+if (!/shadow-focus|focus-visible:|focusVisible/.test(source)) {
+  scan(
+    'outline-none',
+    'outline-none with no replacement focus ring in this file — add focus-visible:shadow-focus (the 4px rgba(0,117,255,0.20) ring). Removing focus indication is a hard violation. See ai/shared-fe/19-design-system.md Rule 6'
+  )
+}
+
+// No emoji, no Unicode pictographs — they render differently per OS and cannot take a
+// stroke-width. Arrows (← → used in the "Critical ← → Optimal" label) and the middot
+// separator used by joinWith are deliberately NOT matched.
+scan(
+  '([\\u2600-\\u27BF]|\\u2B50|\\u25B2|\\u25BC|\\u25CF|\\uFE0F|[\\uD83C-\\uDBFF][\\uDC00-\\uDFFF])',
+  'emoji / Unicode pictograph in the UI — the Telemax system uses Lucide SVG icons only (star, warning triangle, check, status glyphs included). See ai/shared-fe/19-design-system.md Rule 7'
+)
 
 // --- component hierarchy ---------------------------------------------------
 if (!skipHtml) {

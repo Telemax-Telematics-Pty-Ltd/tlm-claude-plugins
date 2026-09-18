@@ -519,6 +519,11 @@ When working in this project, keep in mind:
 - [ ] **Every unwired value carries `BaseMockBadge`, and `grep -rn MOCK src/` finds it** — see §9c
 - [ ] **Below the drawn width the layout does not break** — no horizontal page scroll, no clipped
       text, `min-w-0` on flex children that truncate — see `11-responsive-defaults.md`
+- [ ] **Every visual value is a Telemax Design System token** — no raw hex / px / radius / shadow /
+      font-family, and no stock-palette class (`bg-gray-50`, `bg-blue-500`); page is `bg-bg`, cards are
+      white + borderless + `rounded-lg shadow-sm`; status is colour **and** a Lucide glyph; KPI numerals
+      weight 800; focus ring never removed; no emoji or Unicode pictographs — see §9d and
+      `19-design-system.md`
 
 ### 9a. Affordance pass (run in the browser, after the component compiles)
 
@@ -573,6 +578,26 @@ screen is not blocked — with a `BaseMockBadge` beside it, in every environment
 for the unwired shape where one exists rather than inventing a parallel one.
 
 `grep -rn MOCK src/` must find every site. Full rule: [`13-mock-data.md`](./13-mock-data.md).
+
+### 9d. Design-token pass
+
+A component can be structurally perfect and still be off-brand, because nothing in a diff tells you
+that `#0077FF` is not the Telemax blue or that `bg-gray-50` is the wrong page colour. Run the
+checklist in [`19-design-system.md`](./19-design-system.md) §11 before calling a UI task done.
+
+Two things are easy to miss and worth stating explicitly:
+
+- **A stock Tailwind palette class is a violation, not a shortcut.** `bg-blue-500` compiles and looks
+  approximately right; it is a different blue from `#0075FF` and it will not follow a rebrand.
+- **A Figma value you had to snap to a token goes in your summary**, one line each
+  (`Figma #0074FE → --tm-primary (#0075FF)`). Silent snapping means nobody ever learns the design file
+  has drifted, so the next screen drifts the same way.
+
+`hooks/lint-fe.mjs` mechanically catches the pattern-detectable subset — arbitrary radius/shadow/
+spacing/size/font values, stock palette classes, `outline-none` with no replacement ring, and emoji.
+It cannot see the ones that need judgement: whether the blue is being used as an identity or as
+decoration, whether a KPI card keeps its label → numeral → delta → bar rhythm, whether the copy is
+Title Case and declarative.
 
 ### 10. Documentation Standards
 
