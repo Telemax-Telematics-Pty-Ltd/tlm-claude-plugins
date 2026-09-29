@@ -27,6 +27,7 @@ ai/
 │   ├── 17-email-templates.md    # Transactional email markup + tokens
 │   ├── 18-working-language.md   # Conversation language (per-user, memory) vs. artifact language (English)
 │   └── 19-design-system.md      # ★ Telemax Design System — tokens, component specs, copy rules
+├── telemax2-knowledge/          # Telemax2 MUST-check rules (BE guard-rails, dashboard FE naming)
 ├── shared-be/                   # Cross-stack backend rules (Prisma, EF Core, any ORM)
 │   ├── 01-avoid-n-plus-1-queries.md # Load related data in one round-trip; no query-per-item loops
 │   └── 02-mirror-source-property-names.md # Pass-through props keep the source field's name
