@@ -30,7 +30,9 @@ ai/
 ├── telemax2-knowledge/          # Telemax2 MUST-check rules (BE guard-rails, dashboard FE naming)
 ├── shared-be/                   # Cross-stack backend rules (Prisma, EF Core, any ORM)
 │   ├── 01-avoid-n-plus-1-queries.md # Load related data in one round-trip; no query-per-item loops
-│   └── 02-mirror-source-property-names.md # Pass-through props keep the source field's name
+│   ├── 02-mirror-source-property-names.md # Pass-through props keep the source field's name
+│   ├── 03-remove-dead-code.md   # Every added symbol needs a consumer in the same change
+│   └── 04-complex-queries-brainstorm-first.md # Complex query → 2+ shapes, user confirms, then code
 ├── vendor/
 │   └── ECC-ADOPTION.md          # everything-claude-code review: provenance + what we turned off
 ├── templates/                   # Requirement-intake templates

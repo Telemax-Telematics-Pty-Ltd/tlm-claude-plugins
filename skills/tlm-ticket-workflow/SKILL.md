@@ -112,6 +112,18 @@ Write `<planDir>/<TICKET>.md`:
 Concise and actionable. **English** (or `tlm.tickets.commentLanguage`) regardless of chat language.
 No emojis, no filler. Subtasks become items within this one plan file.
 
+**Backend gate — when the change adds or alters DB queries or migrations (MUST):**
+- **No N+1, ever.** Related data for a collection loads in one round-trip (`Include`/projection or one
+  `IN` query) — never a query inside a loop. → `ai/shared-be/01-avoid-n-plus-1-queries.md`
+- **Complex query → brainstorm first.** 3+ table joins, aggregates, sub-queries, recursive walks, large /
+  time-series tables, hot-path queries: put 2–3 candidate shapes in the plan (round-trips, indexes, rows
+  scanned, generated SQL) with a recommendation, and **get the user to confirm the shape before coding**.
+  → `ai/shared-be/04-complex-queries-brainstorm-first.md`
+- **Touches Telemax2 DataService (or the tables it reads/writes)** → add a `## DB impact` section to the
+  plan reviewing every migration (lock, table size / hypertable, `CREATE INDEX CONCURRENTLY`, rewrites,
+  backfill, backward-compat with the running build, `Down()`) and every query (per batch not per vehicle,
+  index used, time-bounded, COPY BINARY compatibility). → `ai/telemax2-knowledge/04-dataservice-db-impact-review.md`
+
 **Present the plan and wait for approval before implementing.**
 
 ---
@@ -120,7 +132,8 @@ No emojis, no filler. Subtasks become items within this one plan file.
 
 Follow the plan step by step. Apply the `tlm-fe-coding` skill — it detects the stack from
 `tlm.project.type` and applies the matching conventions. Update the plan file if the approach changes
-mid-way; a stale plan is worse than no plan.
+mid-way; a stale plan is worse than no plan. If a confirmed query shape or migration has to change while
+implementing, stop and re-confirm it — don't swap it silently.
 
 ---
 
