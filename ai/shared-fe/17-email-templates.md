@@ -103,6 +103,10 @@ or hides optional blocks when a field is absent.
 **Why:** formatting logic scattered across template branches is untestable and renders differently per
 email; centralising it in the backend keeps the template a pure view.
 
+A date/time in an email arrives with its **timezone label** ("5:31 pm AEST"): the reader has no settings in view
+and may be in another zone. This is the opposite of the Telemax2 dashboard, which shows no label
+([`telemax2-knowledge/05`](../telemax2-knowledge/05-dashboard-dates-user-timezone.md)).
+
 When building an email feature, **classify every content field** and say so in the handoff:
 
 | Class | Source |
