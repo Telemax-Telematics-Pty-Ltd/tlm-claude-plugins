@@ -496,6 +496,7 @@ When working in this project, keep in mind:
 - [ ] Uses `Col`/`Row`/`TextPrimary` instead of raw HTML elements
 - [ ] Creates components liberally, in the correct folder (basic/base/common/domain)
 - [ ] Implements function minimalism (no unnecessary named functions)
+- [ ] No pass-through wrapper functions in lib / utils / hooks (body only forwards to another function) — call the generic helper directly
 - [ ] Navigation uses `Link`, never `onClick` + `router.push`
 - [ ] Proper error handling (`BaseToast.show` + throw in API clients)
 - [ ] Loading/empty states expressed via props (no mount/unmount branching); empty sections keep their

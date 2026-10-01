@@ -976,6 +976,43 @@ const handleSubmit = form.handleSubmit(async (data) => {
 });
 ```
 
+### No pass-through wrapper functions (lib / utils / hooks too)
+
+Function minimalism is not only about event handlers. A **module-level function whose body just
+forwards to another function** — same arguments, maybe one fixed extra argument, 1–5 lines — is the
+same waste one level down. It adds a name, a signature and a doc-comment to keep in sync, hides which
+generic helper actually runs, and multiplies per enum / per domain (`parseBodyType`,
+`parseVehicleClass`, `parseTransmissionType` … each one `return parseEnumValue(value, LOOKUP)`).
+
+**Rule:** export the *data* the generic helper needs (the lookup table, the config object, the
+schema) and call the generic helper **directly at the call site**. Only wrap it when the wrapper adds
+real logic: a fallback chain, a transformation, validation, a narrowed type the call site can't infer,
+or a side effect.
+
+```ts
+// ❌ A function per enum that only forwards — 3 names, 3 signatures, 0 logic
+const TRANSMISSION_LOOKUP = buildEnumLookup(ETransmission, TRANSMISSION_LABELS);
+export function parseTransmissionType(value: string | number | null | undefined): ETransmission | null {
+  return parseEnumValue(value, TRANSMISSION_LOOKUP);
+}
+// call site
+transmission: parseTransmissionType(scan.transmission),
+
+// ✅ Export the data; call the generic helper directly (the type flows from the lookup's generic)
+export const TRANSMISSION_LOOKUP = buildEnumLookup(ETransmission, TRANSMISSION_LABELS);
+// call site
+transmission: parseEnumValue(scan.transmission, TRANSMISSION_LOOKUP),
+
+// ✅ A named function IS justified when it adds logic beyond the forward
+export function bodyTypeFromBodyStyle(style: string | null | undefined): EBodyType | null {
+  if (!style) return null;
+  return BODY_STYLE_TO_TYPE[normaliseEnumKey(style)] ?? null; // normalisation + table, not a forward
+}
+```
+
+Same test for hooks: `const useVehicle = (id) => useQueryVehicle(id);` is a pass-through — import
+`useQueryVehicle` instead.
+
 ## Modal Architecture
 
 ### Centralized Modal Pattern
