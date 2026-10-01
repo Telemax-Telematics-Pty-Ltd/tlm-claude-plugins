@@ -402,6 +402,11 @@ Do not pre-create named handler functions or `useCallback`. Use inline anonymous
 <BaseButton onClick={() => refModal.current?.onOpen(<BookModalContent />)}>Edit</BaseButton>
 ```
 
+**No pass-through wrappers anywhere** (lib / utils / hooks, not just handlers): a function whose
+body only forwards to another (`return parseEnumValue(value, LOOKUP)`) is not created — export the
+data (`LOOKUP`) and call the generic helper at the call site. Wrap only when it adds real logic.
+→ `ai/shared-fe/03-component-patterns.md` "No pass-through wrapper functions".
+
 Express loading / empty / error via **props**, not `if (loading) return <Spinner/>` branches that
 mount and unmount whole subtrees.
 
