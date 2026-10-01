@@ -409,6 +409,10 @@ data (`LOOKUP`) and call the generic helper at the call site. Wrap only when it 
 
 Express loading / empty / error via **props**, not `if (loading) return <Spinner/>` branches that
 mount and unmount whole subtrees.
+**Every async region shows a skeleton in the content's shape for the whole wait.** That includes re-fetches
+on a filter, range, tab or refresh change (no stale rows with no indicator), Load more (skeleton rows under
+the list), and parts that load after the page, such as images. Loading, failed and empty are three
+different visuals. → `ai/shared-fe/03-component-patterns.md` "Every async region shows that it is loading".
 
 **Listings and images have their own rules.** A screen that lists records, or renders an image the
 user needs to read, follows `ai/shared-fe/09-data-listing.md` (table by default, server-driven sort /

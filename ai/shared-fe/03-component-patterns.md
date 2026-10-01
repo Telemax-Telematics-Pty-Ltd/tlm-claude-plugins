@@ -413,6 +413,62 @@ interface FormProps {
 }
 ```
 
+### Every async region shows that it is loading — every time it loads (MUST)
+
+Any part of the UI that waits on a request shows a **visible loading state for the whole wait**, not only
+on the first load. The user must always be able to tell "still loading" from "loaded, nothing there" and
+from "failed".
+
+- **Skeleton in the content's shape.** A list loads as skeleton rows with the row's columns (time, icon,
+  two lines). A card loads as its heading plus blocks. An image loads as a block of the image's exact box.
+  The skeleton takes the space the content will take, so nothing jumps when the data arrives. A spinner
+  alone is only for a button or an action in progress.
+- **Re-fetches count.** Changing a filter, chip, date range, tab or sort, or pressing Refresh, re-reads the
+  data. Show the skeleton in place of the rows that are about to be replaced. Don't leave stale rows on
+  screen with no sign that anything is happening. Hide counts and footers that describe the old data too.
+- **Load more keeps the rows** and adds skeleton rows **under** them. It does not blank the list.
+- **Parts that load after the page** (images, a secondary panel, a lazy section) each have their own
+  loading state. Show each one as soon as it arrives instead of waiting for the slowest.
+- **Loading, failed and empty are three different visuals.** A failed image is the grey placeholder, a
+  loading one is a skeleton, a missing one says it is missing. Never draw one look for both "loading" and
+  "failed".
+- **Accessible:** the region that owns the data carries `role="status"` and an `aria-label`
+  ("Loading activity"). The skeleton shapes themselves are `aria-hidden`.
+
+**Why (the failure it prevents):** TLM-3442 Vehicle Details. Choosing another Activity chip or range kept the
+old rows on screen until the new page arrived. Users read the stale rows as the result of the filter they
+had just picked. The install photos drew the same grey "Photo" box while loading and after a failed load,
+so a slow photo looked broken. The users could not tell that the page was still working.
+
+```tsx
+// ❌ Stale rows stay while the new filter loads; the photo tile is the same while loading and failed
+{query.data && <ActivityRows rows={query.data.rows} />}
+{url ? <img src={url} /> : <PhotoPlaceholder />}
+
+// ✅ Skeleton replaces the rows on a re-read; Load more appends skeleton rows; photo has three states
+{query.isFetching && !query.isFetchingNextPage ? (
+  <ActivitySkeleton rows={6} />
+) : (
+  <ActivityRows rows={query.data.rows} />
+)}
+{query.isFetchingNextPage && <ActivitySkeleton rows={3} showHeading={false} />}
+{url ? <img src={url} /> : isLoading ? <BaseSkeleton className="h-[132px] w-full" /> : <PhotoPlaceholder />}
+```
+
+```razor
+@* Blazor (Telemax2 dashboard): the same three branches, with the revamp Skeleton primitive *@
+@if (IsReloading)
+{
+    <VehicleDetailActivitySkeleton Rows="6" Label="Loading activity"/>
+}
+else if (LoadingPhotos.Contains(photo.Kind))
+{
+    <div role="status" aria-label="Loading the odometer photo">
+        <Skeleton Shape="Skeleton.SkeletonShape.Block" Width="100%" Height="132px"/>
+    </div>
+}
+```
+
 ## Empty States — Show, Don't Hide (MUST)
 
 When a section or list has no data, **render a visible empty state**. Never conditionally hide the

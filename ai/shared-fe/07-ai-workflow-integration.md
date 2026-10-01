@@ -501,6 +501,9 @@ When working in this project, keep in mind:
 - [ ] Proper error handling (`BaseToast.show` + throw in API clients)
 - [ ] Loading/empty states expressed via props (no mount/unmount branching); empty sections keep their
       header and render a visible empty state — never `data.length > 0 ? … : null`
+- [ ] Every async region shows a skeleton in the content's shape on **every** load: first load, filter/range/tab
+      change, refresh, Load more (appended rows), and late parts such as images. Loading ≠ failed ≠ empty
+      visually; the region has `role="status"` + `aria-label`
 - [ ] API types mirror the backend response field-for-field — no renaming/re-deriving in a mapper (§7b)
 - [ ] Mid-layout conditional blocks transition in/out (`grid-rows-[0fr→1fr]` + opacity,
       `motion-reduce:transition-none`) — they do NOT hold a permanent `min-height` gap
