@@ -25,11 +25,11 @@ import sys
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "telemax-qa-skill")
 
-# 10 slash commands (filenames in .claude/commands/). NOT the scripts qa-config /
+# 11 slash commands (filenames in .claude/commands/). NOT the scripts qa-config /
 # qa-log / qa-py / qa-state — those are helper scripts, not commands.
 COMMANDS = [
     "analyze", "apply-feedback", "doctor", "file-bugs", "login",
-    "run", "setup", "status", "verify-prod", "write-cases",
+    "retro", "run", "setup", "status", "verify-prod", "write-cases",
 ]
 # 8 skills (directory names under .claude/skills/).
 SKILLS = [
@@ -42,7 +42,7 @@ CMD_RE = re.compile(r"(?<!tlm-)\bqa-(" + "|".join(map(re.escape, COMMANDS)) + r"
 # `checklist-format` -> `tlm-qa-checklist-format`, guarded the same way.
 SKILL_RE = re.compile(r"(?<!tlm-qa-)\b(" + "|".join(map(re.escape, SKILLS)) + r")\b")
 
-TEXT_EXTS = {".md", ".sh", ".py", ".mjs", ".json", ".ts", ".txt", ".example"}
+TEXT_EXTS = {".md", ".sh", ".py", ".mjs", ".json", ".ts", ".txt", ".example", ".snippet"}
 
 
 # PROVENANCE.md is our meta-doc: it deliberately quotes BOTH the unprefixed upstream

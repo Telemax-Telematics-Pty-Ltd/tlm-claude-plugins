@@ -1,5 +1,162 @@
 # Changelog — Telemax QA Harness
 
+## v3.7 — 2026-09-14
+
+`/tlm-qa-retro` — rà lại lượt chạy vừa xong để tìm chỗ **harness** hỏng.
+
+### Vấn đề
+
+Harness có năm điểm dừng cho người, nhưng cả năm đều hỏi *"kết quả test có đúng
+không"*. Không có chặng nào hỏi *"harness vừa chạy có ổn không"*. Lượt chạy TLM-3088 cho
+thấy khoảng trống đó tốn gì: bốn lỗi loại "sai âm thầm" nằm im qua cả pipeline, và chỉ
+lộ ra khi có người ngồi đọc lại toàn bộ artifact bằng tay.
+
+Ba lớp lỗi **không** tự lộ ra ở bất kỳ chặng nào:
+
+- **Sai âm thầm** — ra kết quả sai, không tín hiệu nào báo (mục G sai vì diff sai nguồn)
+- **Luật tự mâu thuẫn** — hai chỗ trong `.claude/` đòi hai thứ ngược nhau, hỏng với
+  **mọi** ticket chứ không riêng lượt này
+- **Có luật nhưng bị phớt lờ** — luật viết rõ mà lượt chạy không tuân
+
+### Luồng
+
+```
+[1] command thu bằng chứng CƠ HỌC  ──►  .qa/$1/retro-facts.md
+                       │
+      ┌────────────────┴────────────────┐
+      ▼                                 ▼
+retro-analyst (opus)          retro-analyst (fable)
+→ retro-A.md                  → retro-B.md
+      └────────────────┬────────────────┘
+                       ▼
+   [2] COMMAND đối chiếu + chạy lại "Lệnh kiểm" của TỪNG phát hiện
+                       ▼
+             .qa/$1/retro-<ngày>.md
+```
+
+**Một file agent, gọi hai lần với `model` khác nhau** — không phải hai file trùng nội
+dung.
+
+### Ba quyết định thiết kế
+
+1. **Command thu bằng chứng trước, agent không tự mò.** Hai agent đọc **cùng một bộ
+   số** (từ `write_defects.py --mode status`, `progress.log`, `state.json`, `git`,
+   `git check-ignore`). Để mỗi agent tự chạy lệnh thì chỗ chúng lệch nhau có thể chỉ vì
+   agent này gọi trúng lệnh còn agent kia thì không — mất sạch ý nghĩa của đối chiếu.
+
+2. **Mỗi phát hiện phải kèm `Lệnh kiểm` chạy được, và COMMAND chạy lại lệnh đó.** Không
+   qua → xuống mục "Đã bác bỏ" kèm output thật. Đây là phần giá trị nhất: ở bản review
+   harness gần nhất, cổng này bác được một phát hiện nghe rất hợp lý (*"5 tham chiếu
+   chết tới `docs/DEAD-ENDS.md`"*) — chạy lệnh ra file tồn tại, cả 5 link resolve.
+   **Hai agent không có cổng verify thì chỉ nhân đôi số phát hiện ảo.**
+
+3. **Không có agent thứ ba tổng hợp.** Command tự đối chiếu: nó chạy được lệnh, có người
+   dùng ở đó, và không thêm một chỗ nữa để mất kết quả — đúng lỗi return contract vừa
+   sửa ở v3.6.
+
+### Vì sao hai bản, không phải một
+
+Chỗ hai bản **cùng thấy** là tín hiệu mạnh · chỗ **chỉ một bản thấy** là chỗ cần soi kỹ
+· chỗ hai bản **mâu thuẫn** thường là một bên bịa. Một bản thì không có cái nào trong
+ba. Báo cáo có cột `Hai bản` (`A+B` / `A` / `B`) để thấy ngay.
+
+Phát hiện chỉ một bản thấy **không bị loại** vì lý do đó — nó vẫn qua đúng cổng lệnh như
+mọi phát hiện khác.
+
+### Ranh giới
+
+`/tlm-qa-retro` **chỉ xuất báo cáo markdown**: không sửa `.claude/`, không commit, không tạo
+PR. Sửa harness là lượt làm việc riêng, có review riêng — sửa hỏng một luật là hỏng mọi
+ticket sau.
+
+### Đụng vào đâu
+
+- `commands/tlm-qa-retro.md`, `agents/retro-analyst.md` — mới
+- `qa-state.sh`: thêm chặng thứ bảy `retro` (khai ở **hai** chỗ — bash và python)
+- `smoke-scripts.sh`: 3 ca mới, trong đó có ca bắt trường hợp khai thiếu một trong hai chỗ
+- `tlm-qa-status.md`: bảng bảy chặng; `retro` là chặng **tuỳ chọn**, không giục khi thiếu
+- README: 11 command / 9 agent, ngân sách token ~7.700
+
+**Không đụng** `/tlm-qa-analyze` và bộ ba `spec-analyst` / `code-analyst` / `test-analyst`.
+
+## v3.6 — 2026-09-14
+
+Sửa 9 phát hiện từ lượt chạy full pipeline đầu tiên trên repo mới (TLM-3088, Telemax2).
+Harness **chạy được và ra kết quả đúng** — 31 case, AC coverage 6/6, 1 dòng defect gộp
+đúng root cause. Nhưng bốn lỗi thuộc loại **"sai âm thầm"** (ra kết quả sai, không tín
+hiệu nào báo) và một lỗ rò credential.
+
+### High
+
+1. **`tlm-qa-git-diff-scope` mâu thuẫn cấu trúc với `/tlm-qa-run`.** `/tlm-qa-run` cổng 1 bắt buộc code
+   phải đã lên `stage` mới được test → nhánh feature **luôn** cũ hơn `stage` → cách diff
+   đang ưu tiên (`origin/stage...<branch>`) **sai theo thiết kế**, không phải sai vì xui.
+   TLM-3088 lôi vào ~65 dòng của người khác. Thêm **Bước 0**: kiểm ticket đã merge chưa
+   *trước* khi chọn cách; đã merge → diff theo commit merge (`git diff <sha>^ <sha>`).
+   Chuỗi revert → áp lại phải ghi vào mục A — đó là vùng regression đáng test nhất.
+
+2. **Scaffold không tự gitignore secret của chính nó.** Pattern `playwright/.auth/` ở
+   `.gitignore` gốc có `/` ở giữa nên **bị neo vào gốc repo**, không khớp
+   `telemax-e2e/playwright/.auth/`. File đó chứa `authToken_*` + `refreshToken` **sống**
+   (0 cookie — session nằm trong localStorage), và `git status` gộp thành một dòng
+   `?? telemax-e2e/` nên nhìn mắt không thấy. `tlm-qa-e2e-scaffold` nay sinh `.gitignore` **tự
+   chứa** trong thư mục e2e; `gitignore.snippet` thêm `**/playwright/.auth/`;
+   `/tlm-qa-setup` + `/tlm-qa-doctor` thêm hàng kiểm bằng `git check-ignore`.
+
+3. **`fullyParallel: true` trong template** → fail giả hàng loạt trên SPA nặng, triệu
+   chứng y hệt selector hỏng. Đổi `false` + `workers: 2`. Biên bản: `DEAD-ENDS.md` §5.
+
+4. **Câu trả lời ở cổng `/tlm-qa-write-cases` không được lưu ở đâu cả** — khối `ĐÃ LÀM RÕ`
+   chỉ sống trong transcript. Sheet `Assumptions & Questions` có sẵn trong template
+   nhưng `build.py` **không có code path nào** ghi vào đó. Nay: command ghi câu trả lời
+   vào checklist *trước* khi gọi agent; `cases.json` nhận mảng `assumptions`; `build.py`
+   đổ vào sheet và cảnh báo khi Note đánh dấu `[GĐ #NN]` mà không có dòng tương ứng.
+
+### Medium
+
+5. **`test-runner` không có return contract** — kết thúc lượt hai lần bằng "đang chờ
+   background run…" sau 423k token / 349 tool call / 37 phút. Thêm luật cấm chạy nền +
+   bắt buộc trả khối tổng kết §5; `/tlm-qa-run` thêm nhánh xử khi agent trả về rỗng (đọc số
+   liệu từ Excel, **không** gọi lại agent mù).
+
+6. **`tlm-qa-playwright-export` thiếu bẫy locator thật của app** — spec fail 30/32 lần chạy
+   đầu, 0 lỗi sản phẩm. Thêm 5 bẫy + luật "quá nửa file đỏ → nghi môi trường trước, đừng
+   sửa selector". Biên bản: `DEAD-ENDS.md` §4.
+
+7. **Case đọc file export bị đánh `[MANUAL]` dù harness làm được** — 26% bộ test không
+   được đo vì một lý do sai, gồm chính case rủi ro cao nhất ticket. Playwright tải file
+   được, `qa-py.sh` đã có openpyxl.
+
+8. **`qa-config.md` ship default tự mâu thuẫn** — `Trạng thái: CÓ` + `telemax-e2e/`
+   trong khi `install.sh` không còn copy thư mục đó, mà chính file này quy định trạng
+   thái ấy là "SAI CẤU HÌNH: DỪNG". `install.sh` nay tự đặt `CHƯA CÓ` khi cài không kèm
+   `--with-e2e`; bảng trạng thái thêm ngoại lệ cho `/tlm-qa-setup`.
+
+### Low
+
+9. **Comment mẫu "Phản hồi review" dùng số mục thật** kèm câu trả lời nghe hợp lý —
+   người review lướt qua dễ tưởng là quyết định đã chốt. Đổi sang `#N`.
+
+### Nguyên tắc áp dụng
+
+Mọi luật thêm vào `.claude/` được viết ở mức **cơ chế hỏng**, không phải mức một ticket
+hay một app. TLM-3088 chỉ là ca đo được — `.claude/` **không còn tham chiếu nào** tới nó;
+biên bản nằm ở `docs/DEAD-ENDS.md` §4-§5 và ở đây.
+
+Cụ thể: 5 bẫy locator mô tả theo **lớp** (dropdown tự chế · tag thật của trigger · so
+chuỗi con · `<select>` value-vs-label · field bắt buộc theo biến thể), selector Telemax
+chỉ đứng trong ngoặc làm ví dụ, kèm lời mời bổ sung lớp mới khi gặp ở repo khác. Lý do
+`.gitignore` phải tự chứa nêu theo **quy tắc neo pattern của git**, đúng với mọi bố cục
+thư mục con, không riêng `telemax-e2e/`. Luật `tlm-qa-git-diff-scope` suy ra từ **ràng buộc cấu
+trúc của cổng 1 `/tlm-qa-run`**, nên đúng với mọi ticket đi qua harness.
+
+### Không sửa (đã cân nhắc)
+
+- **5 tham chiếu `docs/DEAD-ENDS.md`**: báo cáo review nói là link chết. **Không đúng** —
+  file tồn tại, cả 5 link resolve, lint xác nhận.
+- Cascade từ một dòng phản hồi · tách 3 agent ở `/tlm-qa-analyze` · `[MANUAL]` chặn defect ·
+  luật gộp defect · cổng `stage` và `[DATA-REQ]` — đều đang chạy đúng thiết kế.
+
 ## v3.5 — 2026-09-10
 
 Trạng thái xuyên chặng: resume được, và biết mình đang ở đâu.

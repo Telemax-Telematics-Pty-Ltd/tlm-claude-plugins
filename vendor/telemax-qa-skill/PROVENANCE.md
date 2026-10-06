@@ -8,18 +8,21 @@ is a fix that disappears the next time anyone syncs, and nobody will be watching
 | | |
 |---|---|
 | Upstream | `https://github.com/dungvv-hblab-hbg/telemax-qa-skill` |
-| Copied from | `main` @ `25cdf9e` |
-| Copied on | 2026-09-11 |
+| Copied from | `main` @ `f8157c4` |
+| Copied on | 2026-10-06 |
 | Local transform | `../apply-qa-prefix.py` — `qa-*` commands & bare skill names → `tlm-qa-*` |
 
 ## What it is
 
-The Telemax **QA harness**: ten slash commands (`/tlm-qa-*` here — see "Namespacing"), eight subagents
+The Telemax **QA harness**: eleven slash commands (`/tlm-qa-*` here — see "Namespacing"), nine subagents
 and eight skills that drive
 `ticket → checklist → test-case Excel → run (UI/API) → ClickUp bug → verify production`, with three
 human review stops. As of the v3.5 upstream, the six pipeline stages are joined by two read-only
 diagnostics — `/tlm-qa-doctor` (environment/config health, installs nothing) and `/tlm-qa-status` (cross-stage
-progress from `.qa/<ticket>/state.json`, reconciled against on-disk artifacts). Its own README (in
+progress from `.qa/<ticket>/state.json`, reconciled against on-disk artifacts). Since `f8157c4` there
+is also `/tlm-qa-retro` — a post-run review of the **harness itself** (two independent reviews via the
+`retro-analyst` agent, cross-checked into a markdown report; it never edits `.claude/`, commits, or
+re-runs tests). Its own README (in
 this directory) is the authoritative manual — install
 requirements, the three install traps, the token budget, and the three guardrails that were paid for
 (`Append, không lấp lỗ trống` / `Khoá theo TC ID` / `Won't fix, không xoá dòng`). The transform also
@@ -51,7 +54,7 @@ cat "$SRC/gitignore.snippet" >> .gitignore
 
 Upstream ships the harness with **unprefixed** names: slash commands `/qa-analyze` … `/qa-status`, and
 skills `checklist-format`, `testcase-template`, …. Installed as-is, those land in the same command and
-skill namespace as everything else the consuming repo runs. So `../apply-qa-prefix.py` renames all ten
+skill namespace as everything else the consuming repo runs. So `../apply-qa-prefix.py` renames all eleven
 commands and all eight skills (dir + `name:` frontmatter + every cross-reference) to `tlm-qa-*`. **Agents
 are left unprefixed** — they are internal subagents (`@test-runner`), never a user-facing slash command,
 and never registered as a skill, so they need no namespace and renaming them is churn.
@@ -70,7 +73,7 @@ Then update the table above. To check a sync, the harness carries its own CI che
 the vendored directory (they are location-independent, unlike z-harness's tests):
 
 ```bash
-bash vendor/telemax-qa-skill/.claude/scripts/smoke-scripts.sh   # 18 assertions, no MCP needed
+bash vendor/telemax-qa-skill/.claude/scripts/smoke-scripts.sh   # 19 assertions, no MCP needed
 python3 vendor/telemax-qa-skill/scripts/lint-harness.py         # frontmatter name==dir, links, --project
 ```
 

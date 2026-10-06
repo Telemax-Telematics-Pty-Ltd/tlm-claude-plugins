@@ -91,7 +91,7 @@ config):
   it from the vendored copy when not (additive merge into an existing `.claude/`, **never
   `install.sh --force`**), then routes to the right `/tlm-qa-*` stage (analyze → apply-feedback →
   write-cases → run → file-bugs → verify-prod, plus the read-only `/tlm-qa-doctor` and `/tlm-qa-status`
-  diagnostics). It never re-implements a QA stage inline and never
+  diagnostics and `/tlm-qa-retro`, a post-run review of the harness itself). It never re-implements a QA stage inline and never
   routes around the harness's three review stops or its read-only-production rule.
 - `tlm-spec-driven` — drives **OpenSpec** (external `npx` CLI, needs Node ≥ 20.19) for spec-first work:
   bootstraps `openspec/` + `/opsx:*` commands, then runs propose → apply → sync → archive, enriching

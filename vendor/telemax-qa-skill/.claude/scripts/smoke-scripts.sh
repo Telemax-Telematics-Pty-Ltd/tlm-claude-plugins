@@ -78,6 +78,35 @@ bash "$(dirname "${BASH_SOURCE[0]}")/qa-py.sh" "$SKILL_DIR/scripts/build.py" --i
 check "exit code 2" "$?" "2"
 grep -q "AC-99" "$WORK/gap.out" && ok "PROBLEMS nêu đúng AC-99" || bad "PROBLEMS không nêu AC-99"
 
+# ── 3b. sheet Assumptions & Questions ───────────────────────────────────────
+echo "[3b] assumptions -> sheet Assumptions & Questions"
+python3 - "$SKILL_DIR/assets/example.cases.json" "$WORK/assum.json" "$WORK/dang.json" <<'PY'
+import json,sys
+d=json.load(open(sys.argv[1]))
+# case trỏ [GĐ #72] VÀ trích D2 #17 — chỉ cái đầu là tham chiếu giả định
+d['sections'][0]['cases'][0]['note']='Expected theo [GĐ #72]; message lấy từ D2 #17'
+json.dump(d,open(sys.argv[3],'w'))                       # dangling: chưa có assumptions
+d['assumptions']=[{"ref":"#72","topic":"Report Period format",
+                   "assumption":"12-hour with AM/PM","answer":"confirmed by reviewer",
+                   "date_closed":"2026-09-14"}]
+json.dump(d,open(sys.argv[2],'w'))                       # đủ dòng -> phải sạch
+PY
+bash "$(dirname "${BASH_SOURCE[0]}")/qa-py.sh" "$SKILL_DIR/scripts/build.py" --input "$WORK/dang.json" \
+  --template "$SKILL_DIR/assets/template.xlsx" --output "$WORK/dang.xlsx" > "$WORK/dang.out" 2>&1
+check "[GĐ #NN] không có dòng -> exit 2" "$?" "2"
+grep -q "#72" "$WORK/dang.out" && ok "PROBLEMS nêu đúng #72" || bad "PROBLEMS không nêu #72"
+grep -q "#17" "$WORK/dang.out" && bad "báo nhầm D2 #17 (quét #NN trần)" || ok "không báo nhầm D2 #17"
+
+bash "$(dirname "${BASH_SOURCE[0]}")/qa-py.sh" "$SKILL_DIR/scripts/build.py" --input "$WORK/assum.json" \
+  --template "$SKILL_DIR/assets/template.xlsx" --output "$WORK/assum.xlsx" > "$WORK/assum.out" 2>&1
+check "có đủ dòng assumptions -> exit 0" "$?" "0"
+python3 - "$WORK/assum.xlsx" <<'PY' && ok "sheet Assumptions ghi đúng row 4" || bad "sheet Assumptions KHÔNG có data"
+import sys,openpyxl
+ws=openpyxl.load_workbook(sys.argv[1])['Assumptions & Questions']
+vals=[ws.cell(4,c).value for c in range(1,8)]
+sys.exit(0 if vals[0]=='#72' and vals[5]=='confirmed by reviewer' else 1)
+PY
+
 # ── 4. recalc.py điền lại giá trị Summary ───────────────────────────────────
 echo "[4] recalc.py"
 bash "$(dirname "${BASH_SOURCE[0]}")/qa-py.sh" "$SKILL_DIR/scripts/recalc.py" "$WORK/tc.xlsx" 90 >/dev/null 2>&1
@@ -239,7 +268,11 @@ cp "$STATE_SH" "$SBOX/.claude/scripts/"
   bash .claude/scripts/qa-state.sh set TLM-0001 run done "sau khi hỏng" > /dev/null 2>&1
   echo $? > corrupt_rc.txt
   bash .claude/scripts/qa-state.sh set TLM-0001 khong-ton-tai done > /dev/null 2>&1
-  echo $? > badstage_rc.txt )
+  echo $? > badstage_rc.txt
+  # chặng retro (/tlm-qa-retro) — thêm sau, dễ quên một trong hai chỗ khai STAGES
+  bash .claude/scripts/qa-state.sh set TLM-0002 retro done "3 phát hiện" > /dev/null 2>&1
+  echo $? > retro_rc.txt
+  bash .claude/scripts/qa-state.sh get TLM-0002 > g2.json 2>&1 )
 python3 - "$SBOX" <<'PY'
 import json, os, sys
 s = sys.argv[1]
@@ -259,6 +292,12 @@ ck(g["artifacts"]["testcase_xlsx"] == [], "artifact không có thì báo không 
 ck(open(os.path.join(s, "corrupt_rc.txt")).read().strip() == "0",
    "state.json hỏng vẫn set được (tự dựng lại, không chặn công việc)")
 ck(open(os.path.join(s, "badstage_rc.txt")).read().strip() != "0", "chặng sai bị từ chối")
+# Hai chỗ khai STAGES (bash + python trong cùng file) phải khớp nhau. Khai thiếu một
+# chỗ thì `set` qua được nhưng stage_order sai, và /tlm-qa-status hiển thị lệch.
+ck(open(os.path.join(s, "retro_rc.txt")).read().strip() == "0", "chặng retro được chấp nhận")
+g2 = j("g2.json")
+ck(g2["state"]["stages"].get("retro", {}).get("status") == "done", "retro ghi được vào state.json")
+ck("retro" in g2["state"].get("stage_order", []), "retro có trong stage_order (khai đủ CẢ HAI chỗ)")
 PY
 
 # ── Kết ─────────────────────────────────────────────────────────────────────

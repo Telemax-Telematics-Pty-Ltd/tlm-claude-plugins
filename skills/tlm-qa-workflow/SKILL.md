@@ -77,6 +77,7 @@ request and run the command:
 | "chạy test", "run các case" (Excel already reviewed) | `/tlm-qa-run TLM-XXXX` |
 | "tạo bug", "file bug cho case fail" | `/tlm-qa-file-bugs TLM-XXXX` |
 | "verify prod", dev fix đã deploy production | `/tlm-qa-verify-prod TLM-XXXX` |
+| "rà lại lượt chạy", "harness chạy sai chỗ nào", retro after `/tlm-qa-run` (reviews the harness, not the product) | `/tlm-qa-retro TLM-XXXX` |
 
 Progress is watchable from a second terminal: `tail -f .qa/TLM-XXXX/progress.log` — mention it when
 starting a long stage. `/tlm-qa-status` is the cross-stage view: it reconciles the `.qa/<ticket>/state.json`
