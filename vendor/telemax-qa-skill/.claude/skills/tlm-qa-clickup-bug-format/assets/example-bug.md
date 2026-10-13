@@ -3,7 +3,7 @@
 Dựng từ một dòng Defects đã review. Dùng làm mẫu về mức độ cụ thể cần đạt, không
 phải để chép nguyên văn. Phần giữa hai vạch `---` là **nguyên văn** thân bug gửi lên
 ClickUp — kể cả cách xuống dòng: tiêu đề mục nằm sát nội dung, chỉ một dòng trống giữa
-hai mục, mỗi đoạn văn là một dòng (không ngắt dòng cứng).
+hai mục, Summary/Description mỗi ý một dòng.
 
 ---
 
@@ -13,10 +13,13 @@ hai mục, mỗi đoạn văn là một dòng (không ngắt dòng cứng).
 `[Vehicle Detail] Missing error message when vehicle name is left empty`
 
 **Summary**
-Saving the Vehicle Detail form with an empty Vehicle Name closes the dialog without any validation message. The vehicle is stored with a blank name, so it shows as an empty row in the Vehicles list and fleet managers cannot identify it. Affects both editing an existing vehicle and creating a new one.
+Saving the Vehicle Detail form with an empty Vehicle Name closes the dialog without any validation message.
+The vehicle is stored with a blank name, so it shows as an empty row in the Vehicles list and fleet managers cannot identify it.
+Affects both editing an existing vehicle and creating a new one.
 
 **Description**
-The required-field check on Vehicle Name is missing on the client, and the API accepts an empty name, so nothing stops the save.
+The required-field check on Vehicle Name is missing on the client.
+The API also accepts an empty name, so nothing stops the save.
 
 **Scenario 1 — Edit an existing vehicle**
 URL: https://dashboard-stage.telemax.com.au/manage/vehicles-v3/20451
@@ -52,7 +55,8 @@ URL: https://dashboard-stage.telemax.com.au/manage/vehicles-v3/new
 `[PUT /vehicles/{id}] Returns 500 with stack trace on malformed JSON body`
 
 **Summary**
-Sending a malformed JSON body to the vehicle update endpoint crashes the request with a 500 instead of returning a 400. The error response leaks the internal exception type and server file path, which exposes implementation details to any API client.
+Sending a malformed JSON body to the vehicle update endpoint crashes the request with a 500 instead of returning a 400.
+The error response leaks the internal exception type and server file path, which exposes implementation details to any API client.
 
 **Scenario 1 — Truncated JSON body**
 URL: `PUT https://api-stage.telemax.com.au/vehicles/20451`

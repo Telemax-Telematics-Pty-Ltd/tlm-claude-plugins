@@ -120,8 +120,13 @@ URL: <url đầy đủ>
 `**Actual:**` và `**Expected:**` luôn **tô đậm**, nằm **đầu dòng, không thụt lề** — không
 viết thành bullet (`- `) hay item đánh số, không lồng vào danh sách bước.
 
-Trong một mục cũng không chèn dòng trống (giữa steps, `Actual:`, `Expected:`), và mỗi
-đoạn văn viết trên **một dòng** — không ngắt dòng cứng giữa câu. "Details" chỉ là tên
+Trong một mục cũng không chèn dòng trống (giữa steps, `**Actual:**`, `**Expected:**`).
+
+**Summary và Description ngắt dòng theo ý** — mỗi dòng một ý (một câu, hoặc hai câu
+ngắn cùng ý), xuống dòng đơn (1 newline) sang ý tiếp theo. Không viết một đoạn dài liền
+mạch mà không có break-line; nhưng cũng không chèn dòng trống giữa các ý.
+
+"Details" chỉ là tên
 nhóm các mục sau Summary, **không** in thành một dòng tiêu đề riêng (nó sẽ thành tiêu
 đề không có nội dung ngay dưới).
 
