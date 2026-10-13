@@ -40,11 +40,9 @@ URL: https://dashboard-stage.telemax.com.au/manage/vehicles-v3/new
 - Scenario 1: `TC-B-004-FAIL.png` (attached)
 - Scenario 2: `TC-B-005-FAIL.png` (attached)
 
-**Field ClickUp**
-- TC ID: `TC-B-004`, `TC-B-005` · Environment: dashboard-stage
-- Priority: High (mapped from test case Priority = High)
-- Status: Open
-- Assignee: đề xuất từ commit đụng `VehicleFormValidator.cs` — **chờ duyệt**
+**Traceability**
+- Parent ticket: TLM-2901
+- TC ID: `TC-B-004`, `TC-B-005` · Environment: https://dashboard-stage.telemax.com.au
 
 ---
 
@@ -63,6 +61,19 @@ URL: `PUT https://api-stage.telemax.com.au/vehicles/20451`
 **Actual:** `500 Internal Server Error`. Body contains `Newtonsoft.Json.JsonReaderException` and the server path `/app/src/Telemax.Api/Controllers/VehiclesController.cs`.
 **Expected:** `400 Bad Request` with the standard error envelope. No internal type name or file path in the response body.
 
-**Field ClickUp**
-- TC ID: `TC-API-007` · Environment: staging API
-- Priority: High · Status: Open
+**Traceability**
+- Parent ticket: TLM-2901
+- TC ID: `TC-API-007` · Environment: https://api-stage.telemax.com.au
+
+ClickUp fields (set trên task, **không** ghi vào description): Priority High (từ Priority
+của test case) · Status Open · Assignee đề xuất từ commit đụng `VehicleFormValidator.cs`
+— **chờ duyệt**.
+
+---
+
+## Ví dụ 3 — chỉ phần Traceability của bug production
+
+**Traceability**
+- Parent ticket: TLM-2901
+- TC ID: `TC-B-004` · Environment: https://dashboard.telemax.com.au
+- Tested on production: 2026-10-13 14:30 AEST

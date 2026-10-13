@@ -91,13 +91,17 @@ Không mở đầu bằng tên class.
 - **Evidence** — mọi bằng chứng có đường dẫn đều ghi **URL đầy đủ** (trang lỗi, link
   ảnh/video đã upload, link run). File đính kèm (screenshot) vẫn đính qua
   `ClickUp:clickup_attach_task_file`, và nêu tên file để dev biết ảnh nào của scenario nào.
-- **Field ClickUp** — TC ID, môi trường, priority, status, assignee (xem "Truy vết").
+- **Traceability** — ticket gốc, TC ID, môi trường (xem "Truy vết"). **Không** ghi
+  Priority, Type, Status, Assignee vào description — các giá trị đó set bằng field của
+  task ClickUp, ghi lại trong description là thừa và sẽ lệch khi field đổi. **Không** ghi
+  ngày test (`tested 2026-10-13`); chỉ **bug production** mới ghi thời điểm test, gồm
+  **ngày + giờ** (kèm múi giờ), vd. `Tested on production: 2026-10-13 14:30 AEST`.
 - **Note for dev** (tuỳ chọn) — gợi ý kỹ thuật cho người fix (file:line, hàm thiếu
-  guard…). Luôn là mục **cuối cùng** của bug, sau Field ClickUp.
+  guard…). Luôn là mục **cuối cùng** của bug, sau Traceability.
 
 ### Xuống dòng — không dòng trống thừa
 
-Mỗi mục (Summary, Description, Scenario N, Evidence, Field ClickUp, Note for dev) là một khối:
+Mỗi mục (Summary, Description, Scenario N, Evidence, Traceability, Note for dev) là một khối:
 **tiêu đề mục ở dòng riêng, nội dung bắt đầu ngay dòng kế tiếp** — không có dòng trống
 giữa tiêu đề và nội dung. **Chỉ dùng đúng 2 ký tự xuống dòng (một dòng trống) để tách
 hai mục**, không bao giờ nhiều hơn.
@@ -171,10 +175,11 @@ retest `--mode read`/`fill` tự bỏ qua dòng đã có Ticket ID nên không t
 - [ ] Mở đầu bằng Summary ~50 từ, rồi mới đến Details
 - [ ] Steps tách thành ≥1 scenario; mỗi scenario có URL đầy đủ + `**Actual:**` + `**Expected:**` (đậm, đầu dòng, không thụt lề)
 - [ ] Mọi evidence có đường dẫn đều là URL đầy đủ (không path tương đối)
-- [ ] Note for dev (nếu có) nằm cuối cùng, sau Field ClickUp
+- [ ] Note for dev (nếu có) nằm cuối cùng, sau Traceability
 - [ ] Tiêu đề mục sát nội dung; chỉ một dòng trống giữa hai mục, không dòng trống nào khác
 - [ ] Tiêu đề cụ thể, có ngữ cảnh màn hình/API
 - [ ] Có TC ID + môi trường
+- [ ] Description không có Priority/Type/Status/Assignee; chỉ bug production mới ghi ngày + giờ test
 - [ ] Actual cụ thể (message/status thật), không chung chung
 - [ ] Assignee đã được người dùng duyệt (hoặc để trống, ghi "assign tay")
 - [ ] Đã search ClickUp chống trùng trước khi tạo
