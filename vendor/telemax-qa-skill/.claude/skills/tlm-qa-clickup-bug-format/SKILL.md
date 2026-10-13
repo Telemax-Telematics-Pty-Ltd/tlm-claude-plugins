@@ -93,6 +93,29 @@ Không mở đầu bằng tên class.
   `ClickUp:clickup_attach_task_file`, và nêu tên file để dev biết ảnh nào của scenario nào.
 - **Field ClickUp** — TC ID, môi trường, priority, status, assignee (xem "Truy vết").
 
+### Xuống dòng — không dòng trống thừa
+
+Mỗi mục (Summary, Description, Scenario N, Evidence, Field ClickUp) là một khối:
+**tiêu đề mục ở dòng riêng, nội dung bắt đầu ngay dòng kế tiếp** — không có dòng trống
+giữa tiêu đề và nội dung. **Chỉ dùng đúng 2 ký tự xuống dòng (một dòng trống) để tách
+hai mục**, không bao giờ nhiều hơn.
+
+```
+**Summary**
+<nội dung>
+
+**Scenario 1 — <...>**
+URL: <url đầy đủ>
+1. <bước>
+Actual: <...>
+Expected: <...>
+```
+
+Trong một mục cũng không chèn dòng trống (giữa steps, `Actual:`, `Expected:`), và mỗi
+đoạn văn viết trên **một dòng** — không ngắt dòng cứng giữa câu. "Details" chỉ là tên
+nhóm các mục sau Summary, **không** in thành một dòng tiêu đề riêng (nó sẽ thành tiêu
+đề không có nội dung ngay dưới).
+
 ## Tiêu đề bug
 
 Ngắn, cụ thể, có ngữ cảnh: `[Màn hình/API] — <triệu chứng ngắn>`.
@@ -143,6 +166,7 @@ retest `--mode read`/`fill` tự bỏ qua dòng đã có Ticket ID nên không t
 - [ ] Mở đầu bằng Summary ~50 từ, rồi mới đến Details
 - [ ] Steps tách thành ≥1 scenario; mỗi scenario có URL đầy đủ + `Actual:` + `Expected:`
 - [ ] Mọi evidence có đường dẫn đều là URL đầy đủ (không path tương đối)
+- [ ] Tiêu đề mục sát nội dung; chỉ một dòng trống giữa hai mục, không dòng trống nào khác
 - [ ] Tiêu đề cụ thể, có ngữ cảnh màn hình/API
 - [ ] Có TC ID + môi trường
 - [ ] Actual cụ thể (message/status thật), không chung chung
