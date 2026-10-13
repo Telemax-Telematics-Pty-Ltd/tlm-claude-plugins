@@ -92,10 +92,12 @@ Không mở đầu bằng tên class.
   ảnh/video đã upload, link run). File đính kèm (screenshot) vẫn đính qua
   `ClickUp:clickup_attach_task_file`, và nêu tên file để dev biết ảnh nào của scenario nào.
 - **Field ClickUp** — TC ID, môi trường, priority, status, assignee (xem "Truy vết").
+- **Note for dev** (tuỳ chọn) — gợi ý kỹ thuật cho người fix (file:line, hàm thiếu
+  guard…). Luôn là mục **cuối cùng** của bug, sau Field ClickUp.
 
 ### Xuống dòng — không dòng trống thừa
 
-Mỗi mục (Summary, Description, Scenario N, Evidence, Field ClickUp) là một khối:
+Mỗi mục (Summary, Description, Scenario N, Evidence, Field ClickUp, Note for dev) là một khối:
 **tiêu đề mục ở dòng riêng, nội dung bắt đầu ngay dòng kế tiếp** — không có dòng trống
 giữa tiêu đề và nội dung. **Chỉ dùng đúng 2 ký tự xuống dòng (một dòng trống) để tách
 hai mục**, không bao giờ nhiều hơn.
@@ -169,6 +171,7 @@ retest `--mode read`/`fill` tự bỏ qua dòng đã có Ticket ID nên không t
 - [ ] Mở đầu bằng Summary ~50 từ, rồi mới đến Details
 - [ ] Steps tách thành ≥1 scenario; mỗi scenario có URL đầy đủ + `**Actual:**` + `**Expected:**` (đậm, đầu dòng, không thụt lề)
 - [ ] Mọi evidence có đường dẫn đều là URL đầy đủ (không path tương đối)
+- [ ] Note for dev (nếu có) nằm cuối cùng, sau Field ClickUp
 - [ ] Tiêu đề mục sát nội dung; chỉ một dòng trống giữa hai mục, không dòng trống nào khác
 - [ ] Tiêu đề cụ thể, có ngữ cảnh màn hình/API
 - [ ] Có TC ID + môi trường
