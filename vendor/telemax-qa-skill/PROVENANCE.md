@@ -12,6 +12,15 @@ is a fix that disappears the next time anyone syncs, and nobody will be watching
 | Copied on | 2026-10-06 |
 | Local transform | `../apply-qa-prefix.py` — `qa-*` commands & bare skill names → `tlm-qa-*` |
 
+## Local patches — re-apply after every sync
+
+These are edits made **here**, not upstream, at the team's request. A sync overwrites them; re-apply
+(or upstream them) and keep this list current.
+
+| Date | Files | Change |
+|---|---|---|
+| 2026-10-13 | `.claude/skills/tlm-qa-clickup-bug-format/SKILL.md` + `assets/example-bug.md`, `.claude/agents/bug-proposer.md`, `.claude/agents/bug-filer.md` | Bug body = **Summary (~50 words)** first, then **Details**; Steps split into ≥1 **scenario**, each with a **full URL** (e.g. `https://dashboard-stage.telemax.com.au/manage/vehicles-v3/20451`), steps, then `Actual:` / `Expected:`; every evidence link is a full URL. `bugs-proposed.json` gains `summary` + `scenarios[]`. |
+
 ## What it is
 
 The Telemax **QA harness**: eleven slash commands (`/tlm-qa-*` here — see "Namespacing"), nine subagents

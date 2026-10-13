@@ -73,11 +73,16 @@ Trả về mọi dòng **chưa có Bug ID** và **chưa có Fix Status**. Dòng 
 đi thẳng tới upload — ticket chạy sạch vẫn phải được upload.
 
 ### 2. Dựng nội dung bug qua `skill: tlm-qa-clickup-bug-format`
-Mỗi bug đủ 4 phần:
-- **Description** ← cột Description (trống thì tổng hợp từ Title + bối cảnh)
-- **Steps to reproduce** ← `steps` (Test Steps của case)
-- **Actual Result** ← `actual` (agent điền từ log, người dùng đã review)
-- **Expected Result** ← `expected` (Expected Result của case)
+Mỗi bug theo thứ tự **Summary → Details**:
+- **Summary** (~50 từ) ← cột Description (trống thì tổng hợp từ Title + bối cảnh)
+- **Details**:
+  - **Description** ← phần bối cảnh dài hơn Summary, nếu có
+  - **Scenarios** (≥1) ← `steps` (Test Steps của case), tách theo từng đường tái hiện.
+    Mỗi scenario có `url` **đầy đủ** (`BASE_URL` + path thật lúc test, vd.
+    `https://dashboard-stage.telemax.com.au/manage/vehicles-v3/20451`), các bước,
+    rồi `actual` (agent điền từ log, người dùng đã review) và `expected` (Expected
+    Result của case) **của riêng scenario đó**
+  - **Evidence** ← URL đầy đủ / file đính kèm, ghi rõ của scenario nào
 
 **Assignee**: đề xuất từ commit đụng file lỗi
 (`git log -1 --format='%an <%ae>' -- <file>`) kèm lý do. Không rõ → để trống, ghi
@@ -107,12 +112,19 @@ Ghi `.qa/<TICKET>/bugs-proposed.json`:
       "priority": "High",
       "assignee": "Nguyen Van A <a@telemax.com.au>",
       "assignee_reason": "commit cuối đụng VehicleValidator.cs",
+      "summary": "~50 từ: cái gì sai, ở đâu, ảnh hưởng ai",
       "description": "...",
-      "steps": "...",
-      "actual": "...",
-      "expected": "...",
-      "duplicate_of": null,
-      "evidence": ".qa/TLM-2901/phase1/TC-A-003-FAIL.png"
+      "scenarios": [
+        {
+          "name": "Edit an existing vehicle",
+          "url": "https://dashboard-stage.telemax.com.au/manage/vehicles-v3/20451",
+          "steps": ["...", "..."],
+          "actual": "...",
+          "expected": "...",
+          "evidence": ".qa/TLM-2901/phase1/TC-A-003-FAIL.png"
+        }
+      ],
+      "duplicate_of": null
     }
   ],
   "skipped": [{ "tc_id": "TC-B-002", "reason": "Won't fix" }]

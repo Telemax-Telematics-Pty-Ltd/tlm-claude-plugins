@@ -56,25 +56,42 @@ lấy Ticket ID cũ đưa vào bugmap writeback và báo người dùng.
 File chỉ chống trùng trong phạm vi chính nó; nó không biết tester khác đã raise gì.
 Bỏ bước này là đường nhanh nhất để dev nhận 3 bug giống hệt nhau.
 
-## Nội dung bug — 4 phần bắt buộc
+## Nội dung bug — Summary trước, Details sau
 
-**1. Description** — mô tả ngắn vấn đề: cái gì sai, ở màn hình/endpoint nào, ảnh
-hưởng ra sao. Cột Description trong Defects trống thì tổng hợp từ Title + bối cảnh
-(KHÔNG chép nguyên Title làm description).
+Thân bug luôn theo đúng thứ tự này:
 
-Bug là tài liệu cho **dev**, nên chi tiết kỹ thuật ở Actual (status code, message
-lỗi) là đúng chỗ. Nhưng **Description phải đọc hiểu được ngay** — nói cái gì sai ở màn
-hình nào, ảnh hưởng ai, không mở đầu bằng tên class.
+**1. Summary** — đoạn ngắn **~50 từ** (tối đa ~60), luôn ở đầu: cái gì sai, ở màn hình/
+endpoint nào, ảnh hưởng ai. Người lướt ClickUp chỉ đọc đoạn này phải hiểu được bug. Cột
+Description trong Defects trống thì tổng hợp từ Title + bối cảnh (KHÔNG chép nguyên Title).
+Không mở đầu bằng tên class.
 
-**2. Steps to reproduce** — các bước tái hiện, đánh số. Lấy từ **Test Steps** (cột G
-sheet Test Cases). Phải đủ để người khác làm theo ra đúng lỗi.
+**2. Details** — phần chi tiết cho dev, gồm:
 
-**3. Actual Result** — hiện trạng thật khi lỗi. Lấy từ cột **Actual Result** của
-Defects (agent đã điền từ log test, người dùng đã review). Cụ thể: message sai gì,
-status code nào, hành vi lệch ra sao — không viết chung chung "nó lỗi".
+- **Description** — mô tả đầy đủ hơn Summary khi cần (bối cảnh, phạm vi ảnh hưởng). Bug
+  là tài liệu cho **dev**, nên chi tiết kỹ thuật (status code, message lỗi) đặt ở Actual.
+- **Scenarios** — Steps to reproduce **tách thành 1 hoặc nhiều scenario**, mỗi scenario
+  là một đường tái hiện riêng (khác dữ liệu, khác role, khác điểm vào…). Một bug chỉ có
+  một đường thì vẫn ghi `Scenario 1`. Mỗi scenario gồm, theo thứ tự:
+  1. Tiêu đề scenario ngắn: `Scenario N — <khác biệt của đường này>`
+  2. **URL**: đường dẫn **đầy đủ** tới màn hình/endpoint có bằng chứng, ví dụ
+     `https://dashboard-stage.telemax.com.au/manage/vehicles-v3/20451` — ghép
+     `BASE_URL` (`telemax-e2e/.env`) với path thật lúc test, kèm ID/query thật. **Không
+     ghi path tương đối** (`/manage/vehicles-v3/…`) hay mô tả kiểu "trang vehicle".
+     Bug API thì ghi method + URL đầy đủ. URL lấy từ log/trace của lần chạy (trang
+     đang mở lúc case fail); log không có thì **hỏi**, không tự dựng ID.
+  3. Các bước, đánh số — lấy từ **Test Steps** (cột G sheet Test Cases). Đủ để người
+     khác làm theo ra đúng lỗi.
+  4. `Actual: …` — hiện trạng thật của **scenario này**, lấy từ cột **Actual Result** của
+     Defects (agent điền từ log, người dùng đã review). Cụ thể: message sai gì, status
+     code nào, hành vi lệch ra sao — không viết chung chung "nó lỗi".
+  5. `Expected: …` — kết quả đúng của **scenario này**, lấy từ **Expected Result** (cột
+     I). Nếu là message, trích nguyên văn.
 
-**4. Expected Result** — kết quả đúng đáng lẽ phải xảy ra. Lấy từ **Expected Result**
-(cột I). Nếu là message, trích nguyên văn.
+  Actual/Expected đặt **ngay sau từng scenario**, không gom chung một cục ở cuối bug.
+- **Evidence** — mọi bằng chứng có đường dẫn đều ghi **URL đầy đủ** (trang lỗi, link
+  ảnh/video đã upload, link run). File đính kèm (screenshot) vẫn đính qua
+  `ClickUp:clickup_attach_task_file`, và nêu tên file để dev biết ảnh nào của scenario nào.
+- **Field ClickUp** — TC ID, môi trường, priority, status, assignee (xem "Truy vết").
 
 ## Tiêu đề bug
 
@@ -123,7 +140,9 @@ retest `--mode read`/`fill` tự bỏ qua dòng đã có Ticket ID nên không t
 
 ## Tự kiểm trước khi tạo bug
 
-- [ ] Đủ 4 phần: Description · Steps · Actual · Expected
+- [ ] Mở đầu bằng Summary ~50 từ, rồi mới đến Details
+- [ ] Steps tách thành ≥1 scenario; mỗi scenario có URL đầy đủ + `Actual:` + `Expected:`
+- [ ] Mọi evidence có đường dẫn đều là URL đầy đủ (không path tương đối)
 - [ ] Tiêu đề cụ thể, có ngữ cảnh màn hình/API
 - [ ] Có TC ID + môi trường
 - [ ] Actual cụ thể (message/status thật), không chung chung

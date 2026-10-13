@@ -55,8 +55,9 @@ Cùng một thao tác lỗi 3 lần liên tiếp (ClickUp, Drive) → DỪNG, b�
 ### 1. Tạo bug trên ClickUp
 
 Với mỗi mục trong `APPROVED_BUGS`, tạo qua `ClickUp:clickup_create_task` theo đúng
-nội dung đã duyệt — 4 phần Description · Steps to reproduce · Actual Result ·
-Expected Result (khuôn: `skill: tlm-qa-clickup-bug-format`). List/tag/status/priority lấy
+nội dung đã duyệt — Summary (~50 từ) trước, rồi Details: Description · từng Scenario
+(URL đầy đủ · steps · `Actual:` · `Expected:`) · Evidence (khuôn:
+`skill: tlm-qa-clickup-bug-format`). List/tag/status/priority lấy
 từ `bash .claude/scripts/qa-config.sh clickup`.
 
 Mục có `duplicate_of` mà người dùng chọn **dùng ID cũ** → không tạo mới, đưa thẳng
