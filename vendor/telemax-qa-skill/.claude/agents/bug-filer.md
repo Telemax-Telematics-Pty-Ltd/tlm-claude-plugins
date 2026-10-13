@@ -56,7 +56,7 @@ Cùng một thao tác lỗi 3 lần liên tiếp (ClickUp, Drive) → DỪNG, b�
 
 Với mỗi mục trong `APPROVED_BUGS`, tạo qua `ClickUp:clickup_create_task` theo đúng
 nội dung đã duyệt — Summary (~50 từ) trước, rồi Details: Description · từng Scenario
-(URL đầy đủ · steps · `Actual:` · `Expected:`) · Evidence (khuôn:
+(URL đầy đủ · steps · `**Actual:**` · `**Expected:**` — đậm, đầu dòng, không thụt lề) · Evidence (khuôn:
 `skill: tlm-qa-clickup-bug-format`). Giữ đúng cách xuống dòng của khuôn: tiêu đề mục
 sát nội dung, chỉ một dòng trống giữa hai mục. List/tag/status/priority lấy
 từ `bash .claude/scripts/qa-config.sh clickup`.

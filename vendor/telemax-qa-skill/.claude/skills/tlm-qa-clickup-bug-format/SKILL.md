@@ -81,10 +81,10 @@ Không mở đầu bằng tên class.
      đang mở lúc case fail); log không có thì **hỏi**, không tự dựng ID.
   3. Các bước, đánh số — lấy từ **Test Steps** (cột G sheet Test Cases). Đủ để người
      khác làm theo ra đúng lỗi.
-  4. `Actual: …` — hiện trạng thật của **scenario này**, lấy từ cột **Actual Result** của
+  4. `**Actual:** …` — hiện trạng thật của **scenario này**, lấy từ cột **Actual Result** của
      Defects (agent điền từ log, người dùng đã review). Cụ thể: message sai gì, status
      code nào, hành vi lệch ra sao — không viết chung chung "nó lỗi".
-  5. `Expected: …` — kết quả đúng của **scenario này**, lấy từ **Expected Result** (cột
+  5. `**Expected:** …` — kết quả đúng của **scenario này**, lấy từ **Expected Result** (cột
      I). Nếu là message, trích nguyên văn.
 
   Actual/Expected đặt **ngay sau từng scenario**, không gom chung một cục ở cuối bug.
@@ -107,9 +107,12 @@ hai mục**, không bao giờ nhiều hơn.
 **Scenario 1 — <...>**
 URL: <url đầy đủ>
 1. <bước>
-Actual: <...>
-Expected: <...>
+**Actual:** <...>
+**Expected:** <...>
 ```
+
+`**Actual:**` và `**Expected:**` luôn **tô đậm**, nằm **đầu dòng, không thụt lề** — không
+viết thành bullet (`- `) hay item đánh số, không lồng vào danh sách bước.
 
 Trong một mục cũng không chèn dòng trống (giữa steps, `Actual:`, `Expected:`), và mỗi
 đoạn văn viết trên **một dòng** — không ngắt dòng cứng giữa câu. "Details" chỉ là tên
@@ -164,7 +167,7 @@ retest `--mode read`/`fill` tự bỏ qua dòng đã có Ticket ID nên không t
 ## Tự kiểm trước khi tạo bug
 
 - [ ] Mở đầu bằng Summary ~50 từ, rồi mới đến Details
-- [ ] Steps tách thành ≥1 scenario; mỗi scenario có URL đầy đủ + `Actual:` + `Expected:`
+- [ ] Steps tách thành ≥1 scenario; mỗi scenario có URL đầy đủ + `**Actual:**` + `**Expected:**` (đậm, đầu dòng, không thụt lề)
 - [ ] Mọi evidence có đường dẫn đều là URL đầy đủ (không path tương đối)
 - [ ] Tiêu đề mục sát nội dung; chỉ một dòng trống giữa hai mục, không dòng trống nào khác
 - [ ] Tiêu đề cụ thể, có ngữ cảnh màn hình/API

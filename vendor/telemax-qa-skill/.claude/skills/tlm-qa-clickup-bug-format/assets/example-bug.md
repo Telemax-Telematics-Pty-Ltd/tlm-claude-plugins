@@ -24,8 +24,8 @@ URL: https://dashboard-stage.telemax.com.au/manage/vehicles-v3/20451
 2. Open the URL above
 3. Clear the Vehicle Name field
 4. Click Save
-Actual: Dialog closes, no validation message shown. The list row for vehicle `20451` renders with an empty title. `PUT /vehicles/20451` returns 200.
-Expected: Save is blocked and "Vehicle name is required." is displayed under the field. No request is sent.
+**Actual:** Dialog closes, no validation message shown. The list row for vehicle `20451` renders with an empty title. `PUT /vehicles/20451` returns 200.
+**Expected:** Save is blocked and "Vehicle name is required." is displayed under the field. No request is sent.
 
 **Scenario 2 — Create a new vehicle**
 URL: https://dashboard-stage.telemax.com.au/manage/vehicles-v3/new
@@ -33,8 +33,8 @@ URL: https://dashboard-stage.telemax.com.au/manage/vehicles-v3/new
 2. Open the URL above
 3. Fill every required field except Vehicle Name
 4. Click Save
-Actual: Vehicle is created with an empty name. `POST /vehicles` returns 201.
-Expected: Save is blocked and "Vehicle name is required." is displayed under the field.
+**Actual:** Vehicle is created with an empty name. `POST /vehicles` returns 201.
+**Expected:** Save is blocked and "Vehicle name is required." is displayed under the field.
 
 **Evidence**
 - Scenario 1: `TC-B-004-FAIL.png` (attached)
@@ -60,8 +60,8 @@ Sending a malformed JSON body to the vehicle update endpoint crashes the request
 URL: `PUT https://api-stage.telemax.com.au/vehicles/20451`
 1. Authenticate against staging and obtain a valid token
 2. Send the request above with body `{"name": ` (truncated JSON)
-Actual: `500 Internal Server Error`. Body contains `Newtonsoft.Json.JsonReaderException` and the server path `/app/src/Telemax.Api/Controllers/VehiclesController.cs`.
-Expected: `400 Bad Request` with the standard error envelope. No internal type name or file path in the response body.
+**Actual:** `500 Internal Server Error`. Body contains `Newtonsoft.Json.JsonReaderException` and the server path `/app/src/Telemax.Api/Controllers/VehiclesController.cs`.
+**Expected:** `400 Bad Request` with the standard error envelope. No internal type name or file path in the response body.
 
 **Field ClickUp**
 - TC ID: `TC-API-007` · Environment: staging API

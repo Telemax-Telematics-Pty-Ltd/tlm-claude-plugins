@@ -21,6 +21,7 @@ These are edits made **here**, not upstream, at the team's request. A sync overw
 |---|---|---|
 | 2026-10-13 | `.claude/skills/tlm-qa-clickup-bug-format/SKILL.md` + `assets/example-bug.md`, `.claude/agents/bug-proposer.md`, `.claude/agents/bug-filer.md` | Bug body = **Summary (~50 words)** first, then **Details**; Steps split into ≥1 **scenario**, each with a **full URL** (e.g. `https://dashboard-stage.telemax.com.au/manage/vehicles-v3/20451`), steps, then `Actual:` / `Expected:`; every evidence link is a full URL. `bugs-proposed.json` gains `summary` + `scenarios[]`. |
 | 2026-10-13 | same files | No blank-line padding: section title sits directly on its content; exactly one blank line (2 newlines) between sections; one line per paragraph; no standalone "Details" title line. |
+| 2026-10-13 | same files | `**Actual:**` / `**Expected:**` are bold, at line start, not indented — never a bullet or numbered item. |
 
 ## What it is
 
