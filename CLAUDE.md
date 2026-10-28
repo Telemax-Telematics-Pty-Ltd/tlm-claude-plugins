@@ -82,6 +82,13 @@ config):
   (user story, description, reproduce steps, test scenarios); technical sections (codebase
   exploration, migration/database) stay as placeholders for the dev. Links related/parent tickets
   the user names, **never invents subtasks** — the ticket it creates is the single source of truth.
+- `tlm-feature-brief` — one command, two modes picked from the ticket. **Brief** (ticket with no parent):
+  it + **every** sub-ticket (recursively), comment and threaded reply → one ~400-word client brief
+  (summary, what's included, use cases, quality, decisions needed) on that ticket. **Rollup** (ticket with
+  a parent): a short `**Rollup: <ID> …**` status on the **direct parent**, then offers to refresh the
+  root's brief. Newest statement wins; internal detail (PRs, files, migrations, names) is left out; one
+  comment per target, updated in place, posted only after the user approves the draft.
+  `tlm-ticket-workflow` PHASE 6 runs it in Rollup mode when the synced ticket has a parent.
 - `tlm-mobile-release-notes` — commit range → plain-language notes → Slack draft (mobile projects only).
 - `tlm-deployment-checklist` — release check: tickets, services, migrations.
 - `tlm-qa-workflow` — bridge into the **QA harness** vendored at `vendor/telemax-qa-skill` (a copy of

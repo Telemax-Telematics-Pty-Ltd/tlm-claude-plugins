@@ -161,6 +161,9 @@ reference them in a comment.
 
 **3. Move to `statuses.inReview`** — after confirming with the user.
 
+**4. Roll up to the parent.** If the ticket has a parent, run `/tlm-feature-brief` on it (Rollup mode) so the
+parent shows this slice's new state.
+
 ---
 
 ## RULES

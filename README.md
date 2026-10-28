@@ -21,6 +21,7 @@ them all.
 | **`/tlm-figma-to-code`** | Figma design → screen, in your actual stack and conventions. **Hard-stops rather than guessing** when it cannot read the design. | a figma.com link |
 | **`/tlm-ticket-workflow`** | Ticket → branch → plan file → implement → non-technical summary synced back → moved to review. Tracker-agnostic. | `TLM-1234`, a ticket URL, "work on task" |
 | **`/tlm-ba-ticket`** | A requirement or bug described in chat → ONE well-formed ticket in the team's template. | "create a ticket", "log bug", "tạo ticket" |
+| **`/tlm-feature-brief`** | On a feature ticket: it + all sub-tickets, comments and replies → one ~400-word client brief (what's included, use cases, quality, decisions needed) on that ticket. On a sub-ticket: a short status rollup posted on its parent. One comment each, updated in place. | "tóm tắt cho KH", "feature brief", "summarize vào parent", "rollup TLM-1234" |
 | **`/tlm-mobile-release-notes`** | A commit range → plain-language build notes for testers, posted as a draft. Mobile only. | a commit range, "release notes" |
 | **`/tlm-deployment-checklist`** | Compares your branch against a base, finds every ticket in scope, enriches each from the tracker, and lists the services to deploy and migrations to run. | "release check", "deployment checklist" |
 | **`/tlm-spec-driven`** | Agrees the spec before any code, driving OpenSpec's propose → apply → archive loop. Offered per ticket, never forced. | "openspec", `/opsx:*`, an `openspec/` directory |

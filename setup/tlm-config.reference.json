@@ -133,7 +133,7 @@
     "clickup": {
       "required": "when tlm.tickets.enabled === true && tlm.tickets.system === 'clickup'",
       "purpose": "Read/update tickets, post comments, attach QA evidence, create BA-written tickets.",
-      "usedBy": ["tlm-ticket-workflow", "release-notes", "tlm-deployment-checklist", "tlm-ba-ticket"],
+      "usedBy": ["tlm-ticket-workflow", "release-notes", "tlm-deployment-checklist", "tlm-ba-ticket", "tlm-feature-brief"],
       "secret": false,
       "detectBy": "tool name matches mcp__*ClickUp*__clickup_get_task",
       "install": {
@@ -659,6 +659,12 @@
       "config": ["tlm.tickets.system", "tlm.tickets.workspaceId", "tlm.tickets.baTemplates (has defaults)", "tlm.tickets.defaultListId (optional)"],
       "secrets": [],
       "ifMissing": "tickets is an all-or-nothing capability (see companions). If the tracker MCP is unreachable or tlm.tickets.enabled is false, stop and point to /tlm-project-setup — no draft-only fallback. A missing defaultListId alone never blocks: ask which list (offer real names from the workspace hierarchy) and offer to persist it."
+    },
+    "tlm-feature-brief": {
+      "mcp": ["<the MCP for tlm.tickets.system — currently clickup only>"],
+      "config": ["tlm.tickets.system", "tlm.tickets.workspaceId", "tlm.tickets.commentLanguage"],
+      "secrets": [],
+      "ifMissing": "tickets is an all-or-nothing capability (see companions). If the tracker MCP is unreachable or tlm.tickets.enabled is false, stop and point to /tlm-project-setup — never write a brief or rollup from memory."
     },
     "tlm-deployment-checklist": {
       "mcp": ["<the MCP for tlm.tickets.system>"],
