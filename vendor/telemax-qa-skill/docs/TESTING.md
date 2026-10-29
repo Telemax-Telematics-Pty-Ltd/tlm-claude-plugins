@@ -67,13 +67,13 @@ Thêm một phép thử ngắn cho luồng "chưa có ticket": dán một đoạ
 
 | Gõ | Skill phải được nạp |
 |---|---|
-| "phân tích ticket TLM-2899 xem cần test gì" | `tlm-qa-checklist-format` |
-| "viết test case cho form thêm xe" | `tlm-qa-testcase-template` + `tlm-qa-common-validate` |
-| "phủ validate cho field biển số" | `tlm-qa-common-validate` |
-| "thay đổi này ảnh hưởng gì, cần test hồi quy chỗ nào" | `tlm-qa-git-diff-scope` |
-| "export luồng test này ra Playwright" | `tlm-qa-playwright-export` |
-| "chạy API test cho ticket này" | `tlm-qa-postman-api-test` |
-| "tạo bug trên ClickUp cho case fail" | `tlm-qa-clickup-bug-format` |
+| "phân tích ticket TLM-2899 xem cần test gì" | `checklist-format` |
+| "viết test case cho form thêm xe" | `testcase-template` + `common-validate` |
+| "phủ validate cho field biển số" | `common-validate` |
+| "thay đổi này ảnh hưởng gì, cần test hồi quy chỗ nào" | `git-diff-scope` |
+| "export luồng test này ra Playwright" | `playwright-export` |
+| "chạy API test cho ticket này" | `postman-api-test` |
+| "tạo bug trên ClickUp cho case fail" | `clickup-bug-format` |
 
 Kiểm bằng `/context` xem skill nào đang nằm trong context.
 
@@ -81,7 +81,7 @@ Kiểm bằng `/context` xem skill nào đang nằm trong context.
 - *Không nạp khi cần* → `description` thiếu từ khoá người dùng hay dùng. Thêm cụm đó
   vào phần "Dùng khi..." của description, đừng sửa body.
 - *Nạp thừa* → description quá rộng. Ví dụ hỏi "cách viết commit message" mà kéo
-  `tlm-qa-git-diff-scope` vào là dấu hiệu description của nó đang ôm quá nhiều.
+  `git-diff-scope` vào là dấu hiệu description của nó đang ôm quá nhiều.
 
 Cũng kiểm luôn: gõ một câu **không liên quan gì tới QA** ("giải thích cho tôi cách
 index Postgres hoạt động") — không skill nào của harness được nạp.
@@ -95,11 +95,11 @@ Chạy 5 file trong `evals/`. Cách chạy: mở session sạch, chạy `query` 
 
 | File | Chặng |
 |---|---|
-| `01-checklist-structure.json` | `/tlm-qa-analyze` |
-| `02-build-traceability.json` | `/tlm-qa-write-cases` |
-| `03-defects-manual-guard.json` | `/tlm-qa-run` + `/tlm-qa-file-bugs` |
+| `01-checklist-structure.json` | `/qa-analyze` |
+| `02-build-traceability.json` | `/qa-write-cases` |
+| `03-defects-manual-guard.json` | `/qa-run` + `/qa-file-bugs` |
 | `04-input-gate.json` | cả 4 chặng — cổng đầu vào |
-| `05-prod-safety.json` | `/tlm-qa-verify-prod` — hàng rào `@prod-safe` |
+| `05-prod-safety.json` | `/qa-verify-prod` — hàng rào `@prod-safe` |
 
 ### Chạy baseline trước
 
@@ -139,7 +139,7 @@ Haiku.
 `04-input-gate.json` đáng chạy nhất sau mỗi lần sửa command. Bốn kịch bản con test bốn
 chỗ agent hay tự đoán:
 
-- **4a** gõ `/tlm-qa-analyze` không kèm ticket, đang đứng trên nhánh `feature/TLM-2899-...`
+- **4a** gõ `/qa-analyze` không kèm ticket, đang đứng trên nhánh `feature/TLM-2899-...`
   → phải hỏi hoặc xin xác nhận, không tự dùng ID suy từ tên nhánh.
 - **4b** checklist có field mà D1 để trống ràng buộc → phải hỏi maxlength, **không được
   viết test Boundary với 254/255/256**.
@@ -161,22 +161,22 @@ Chọn **một ticket đã đóng** mà bạn biết rõ kết quả đúng ph�
 Tiêu chí chọn ticket đầu tiên:
 - có acceptance criteria rõ ràng (để test Traceability)
 - có ít nhất 2 vai trò hoặc một vòng đời trạng thái (để test mục E)
-- có commit gắn mã ticket (để test `tlm-qa-git-diff-scope`)
+- có commit gắn mã ticket (để test `git-diff-scope`)
 - quy mô vừa, khoảng 15–25 case — nhỏ quá thì không lộ vấn đề, lớn quá thì mệt
 
 Chạy đủ 5 lệnh theo thứ tự, dừng lại review thật ở 3 điểm dừng:
 
 ```
-/tlm-qa-analyze TLM-XXXX
+/qa-analyze TLM-XXXX
     ▸ Đọc checklist. Cố tình ghi vào "Phản hồi review" một phản hồi SAI
       (VD "#4 sai, maxlength là 50") để xem nó có áp đúng số không.
-/tlm-qa-apply-feedback TLM-XXXX
+/qa-apply-feedback TLM-XXXX
     ▸ Kiểm: số cũ giữ nguyên? phản hồi được CHUYỂN xuống "Đã xử lý", không bị xoá?
-/tlm-qa-write-cases TLM-XXXX
+/qa-write-cases TLM-XXXX
     ▸ Kiểm: Traceability không MISSING? Total trên Summary khớp số case?
       Message trong Expected có khớp nguyên văn D2 không?
       Đưa file cho một tester chưa từng đọc ticket: họ chạy được mà không phải hỏi lại không?
-/tlm-qa-run TLM-XXXX
+/qa-run TLM-XXXX
     ▸ Kiểm: nó có HỎI round trước khi ghi không?
       Có case nào còn Not Run không? (còn là sai)
       Case API có được skip gọn (Blocked + [MANUAL] chưa có Postman) không?
@@ -184,16 +184,16 @@ Chạy đủ 5 lệnh theo thứ tự, dừng lại review thật ở 3 điểm 
       trong một file không? (ticket đụng nhiều màn hình → nhiều describe, không nhiều file)
       Nó có CHẠY THỬ spec vừa export và báo kết quả khớp Phase 1 không?
     ▸ Đặt Fix Status = "Won't fix" cho một dòng, và ĐỪNG xoá dòng nào.
-/tlm-qa-file-bugs TLM-XXXX
+/qa-file-bugs TLM-XXXX
     ▸ Kiểm: có xin duyệt cả lô một lần không? có bỏ đúng dòng Won't fix không?
       Bug ID có được ghi về cả 2 sheet không?
 ```
 
-### Phép thử vòng lặp spec (chạy `/tlm-qa-run` lần thứ hai trên cùng ticket)
+### Phép thử vòng lặp spec (chạy `/qa-run` lần thứ hai trên cùng ticket)
 
 Đây là thứ quyết định export có giá trị hay không:
 
-1. Chạy `/tlm-qa-run` lần 2, chọn Round 2. Nó phải **grep thấy spec đã có và chạy
+1. Chạy `/qa-run` lần 2, chọn Round 2. Nó phải **grep thấy spec đã có và chạy
    `npx playwright test --project=chromium -g`**, không dò lại bằng MCP. Kiểm bằng cách xem nó có mở
    trình duyệt qua MCP nữa không.
 2. **Đổi tay một selector trong spec cho hỏng** (VD sửa `getByRole('heading')` thành
@@ -211,14 +211,14 @@ Chạy đủ 5 lệnh theo thứ tự, dừng lại review thật ở 3 điểm 
 
 Đây là chỗ v2.0 từng vỡ, nên đáng thử có chủ đích:
 
-1. **Xoá một dòng ở giữa sheet Defects** rồi chạy lại `/tlm-qa-run`. Dòng defect mới phải
+1. **Xoá một dòng ở giữa sheet Defects** rồi chạy lại `/qa-run`. Dòng defect mới phải
    được **append sau dòng cuối**, không được lấp vào chỗ trống — lấp là đè mất Actual
    bạn đã review.
 2. **Chèn một dòng** vào sheet Defects giữa lúc `read` và `writeback`. Ticket ID vẫn
    phải gắn đúng case (khoá theo TC ID, không theo số dòng).
 3. **Xoá dòng thay vì đặt Won't fix.** Case đó phải quay lại ở lần chạy sau — đúng như
    thiết kế. Nếu nó im lặng biến mất là hàng rào thủng.
-4. **Sửa file trên Google Drive rồi chạy `/tlm-qa-file-bugs`.** Nó phải dừng và bắt bạn tải
+4. **Sửa file trên Google Drive rồi chạy `/qa-file-bugs`.** Nó phải dừng và bắt bạn tải
    về ghi đè bản local.
 
 ### Nghiệm thu
@@ -233,13 +233,13 @@ giữa chừng. Một ticket có thể là may.
 | Triệu chứng | Nguyên nhân hay gặp |
 |---|---|
 | Summary trống, các ô công thức không có số | Quên `recalc.py`, hoặc máy không có LibreOffice |
-| `ModuleNotFoundError: openpyxl` | Gọi `python3` trực tiếp thay vì `.claude/scripts/qa-py.sh`; hoặc venv chuẩn chưa tạo — chạy `/tlm-qa-setup` |
+| `ModuleNotFoundError: openpyxl` | Gọi `python3` trực tiếp thay vì `.claude/scripts/qa-py.sh`; hoặc venv chuẩn chưa tạo — chạy `/qa-setup` |
 | Có nhiều venv lạc (`.qa/.venv`, `~/.qa-venv`) | Session cũ tự xoay quanh PEP 668. Xoá đi, dùng `.claude/.venv`, hoặc trỏ `QA_PYTHON` vào cái muốn giữ |
 | Total trên Summary nhỏ hơn số case thật | Bộ case vượt row 33 mà range công thức chưa được nới |
 | Case Fail mà không thấy dòng defect | TC ID trùng, hoặc case đã có Bug ID, hoặc Note bắt đầu bằng `[MANUAL]` |
 | Bug rác cho case chạy tay | Thiếu marker `[MANUAL]` ở cột N |
-| `/tlm-qa-run` dừng hẳn vì chưa có Postman | Trạng thái trong `qa-config.md` đang là `CÓ` — đổi về `CHƯA CÓ` để skip nhánh API |
-| Tester hỏi lại nhiều khi đọc test case | Steps viết theo giọng kỹ thuật — kiểm mục "Giọng văn" trong `tlm-qa-testcase-template` |
+| `/qa-run` dừng hẳn vì chưa có Postman | Trạng thái trong `qa-config.md` đang là `CÓ` — đổi về `CHƯA CÓ` để skip nhánh API |
+| Tester hỏi lại nhiều khi đọc test case | Steps viết theo giọng kỹ thuật — kiểm mục "Giọng văn" trong `testcase-template` |
 | Test Pass hết nhưng tính năng mới không thấy đâu | Code chưa merge vào `stage` (staging) hoặc `master` (production), hoặc chưa build — đang test bản cũ |
 | Mục G nêu vùng ảnh hưởng không liên quan | Diff so với `master` thay vì `stage` — lôi cả thay đổi chưa lên staging |
 | Agent tự chạy `claude mcp add` khi chưa được duyệt | Sai — lệnh này sửa cấu hình repo, phải chờ gật ở command |
@@ -259,13 +259,13 @@ giữa chừng. Một ticket có thể là may.
 | Script seed báo profile bị chiếm | MCP đã mở browser trong session này — thoát Claude Code rồi chạy script trước |
 | Sửa `.mcp.json` xong mà không đổi gì | MCP đọc args lúc khởi động — phải thoát session và mở lại |
 | `.mcp.json` đúng hết mà timeout vẫn 5s, seed profile vẫn `/login` | Có server `playwright` trùng ở scope `local`/`user` đang thắng — `claude mcp list` rồi gỡ bản ngoài project |
-| Agent đứng im ở màn 2FA | Agent đang cố chờ; đúng ra phải kết thúc chặng và để `/tlm-qa-login` lo |
+| Agent đứng im ở màn 2FA | Agent đang cố chờ; đúng ra phải kết thúc chặng và để `/qa-login` lo |
 | Phase 1 bắt đăng nhập lại mỗi lần | `.mcp.json` thiếu `--user-data-dir` — MCP đang dùng thư mục tạm |
 | Case Fail mà bug không có ảnh | Phase 1 bỏ bước chụp, hoặc quên `mv` từ `.playwright-mcp-output/` sang `.qa/<ticket>/phase1/` |
 | Kết quả Phase 1 lúc đúng lúc sai | Có người bấm vào cửa sổ trình duyệt trong lúc agent chạy |
 | Agent bịa selector thay vì báo thiếu MCP | Bỏ qua mục "Kiểm MCP Playwright" trong `test-runner` |
 | Hướng dẫn cài MCP kiểu OAuth (Authenticate/Allow) | Sai — Playwright MCP là server local, dùng `claude mcp add playwright` |
-| `/tlm-qa-verify-prod` báo xanh mà không chạy case nào | Ticket chưa có case nào gắn `@prod-safe` — phải dừng, không được báo xanh |
+| `/qa-verify-prod` báo xanh mà không chạy case nào | Ticket chưa có case nào gắn `@prod-safe` — phải dừng, không được báo xanh |
 | Chạy lâu, không biết đang ở case nào, tưởng treo | Agent chỉ log theo bước — phải log một dòng cho mỗi case, kèm số đếm dồn |
 | `npx playwright test --project=chromium` chạy im lặng vài phút | Thiếu `--reporter=line` và `tee` vào `progress.log` |
 | Không thấy `progress.log` | Agent bỏ qua mục "Báo tiến trình", hoặc chạy sai thư mục gốc repo |
@@ -285,7 +285,7 @@ giữa chừng. Một ticket có thể là may.
 
 ## Thứ tự khuyến nghị cho lần đầu
 
-1. `/tlm-qa-setup` — soát và cài hai thứ cần cho repo mới (chromium + MCP Playwright)
+1. `/qa-setup` — soát và cài hai thứ cần cho repo mới (chromium + MCP Playwright)
 2. `bash .claude/scripts/smoke-scripts.sh` — phải xanh trước đã
 3. Điền `.claude/qa-config.md` (list ClickUp là bắt buộc cho chặng cuối)
 4. Tầng 1, 7 câu discovery — 5 phút

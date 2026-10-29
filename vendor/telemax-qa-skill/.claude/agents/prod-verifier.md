@@ -37,7 +37,7 @@ Command đã chạy cổng đầu vào và truyền giá trị đã xác nhận 
 Trước mỗi bước, chạy đúng một dòng:
 
 ```bash
-bash .claude/scripts/qa-log.sh <TICKET> tlm-qa-verify-prod <bước>/4 "<đang làm gì>"
+bash .claude/scripts/qa-log.sh <TICKET> qa-verify-prod <bước>/4 "<đang làm gì>"
 ```
 
 | Bước | Thông điệp |
@@ -74,7 +74,7 @@ chạy mục này khi field ghi `?` hoặc để trống.
   `KHÔNG DÙNG` → **DỪNG**: repo không dùng project e2e nên không có spec để verify.
   Báo người dùng verify tay, đừng báo xanh.
 - `tests/TLM-XXXX.spec.ts` tồn tại? Không → DỪNG, báo: ticket chưa có spec, chạy
-  `/tlm-qa-run` trên staging trước.
+  `/qa-run` trên staging trước.
 - Đếm số case gắn `@prod-safe` trong file đó:
   ```bash
   cd telemax-e2e && npx playwright test --project=prod tests/TLM-XXXX.spec.ts --list

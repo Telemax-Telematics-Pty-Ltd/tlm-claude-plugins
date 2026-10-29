@@ -7,7 +7,7 @@
 #   ./install.sh /đường/dẫn/repo-dich --with-e2e    # copy luôn telemax-e2e/ (xem dưới)
 #
 # Copy: .claude/  ·  .mcp.json
-# KHÔNG copy project e2e (mặc định) — /tlm-qa-setup dò repo đích rồi hỏi. --with-e2e để
+# KHÔNG copy project e2e (mặc định) — /qa-setup dò repo đích rồi hỏi. --with-e2e để
 # copy nguyên bản Telemax, chỉ đúng khi repo đích là app Telemax cùng form login.
 # Append: gitignore.snippet vào .gitignore của repo đích (bỏ qua nếu đã có)
 #
@@ -73,7 +73,7 @@ fi
 # biến môi trường, dữ liệu mẫu. Bê nguyên project của app khác sang thì mọi selector
 # đều sai và `npm run check` đỏ ngay từ phút đầu, mà người mới cài không biết vì sao.
 #
-# /tlm-qa-setup sẽ dò repo đích rồi hỏi, và đi một trong ba nhánh (skill tlm-qa-e2e-scaffold):
+# /qa-setup sẽ dò repo đích rồi hỏi, và đi một trong ba nhánh (skill e2e-scaffold):
 #   A. repo đã có Playwright  -> vá config sẵn có cho đủ hàng rào, không dựng thêm
 #   B. chưa có, là app web    -> scaffold theo app thật của repo đó
 #   C. không phải app web     -> bỏ nhánh UI, qa-config ghi Trạng thái KHÔNG DÙNG
@@ -90,7 +90,7 @@ if [ "$WITH_E2E" = 1 ]; then
     say "  Chỉ đúng nếu repo đích là app Telemax cùng form đăng nhập."
   fi
 else
-  say "project e2e -> BỎ QUA (mặc định). /tlm-qa-setup sẽ dò repo rồi hỏi bạn."
+  say "project e2e -> BỎ QUA (mặc định). /qa-setup sẽ dò repo rồi hỏi bạn."
   say "  Repo đích là app Telemax khác, cùng form login? Chạy lại với --with-e2e."
 fi
 
@@ -98,7 +98,7 @@ fi
 # Bản trong repo harness ghi `CÓ` vì telemax-e2e/ tồn tại ở đó. Copy nguyên sang một
 # repo KHÔNG được copy e2e là để lại `CÓ` + thư mục không tồn tại — mà chính file đó
 # quy định trạng thái ấy là "SAI CẤU HÌNH: DỪNG, báo". Người mới cài đâm vào hàng rào
-# này ngay bước đầu, trước khi /tlm-qa-setup kịp dựng gì.
+# này ngay bước đầu, trước khi /qa-setup kịp dựng gì.
 QC="$TARGET/.claude/qa-config.md"
 if [ "$WITH_E2E" != 1 ]; then
   if [ "$DRY" = 1 ]; then
@@ -129,11 +129,11 @@ fi
 echo
 echo "Xong. Bốn việc tiếp theo, theo thứ tự:"
 echo
-echo "  1. Mở Claude Code trong '$TARGET' rồi chạy:  /tlm-qa-setup"
+echo "  1. Mở Claude Code trong '$TARGET' rồi chạy:  /qa-setup"
 echo "     Nó soát Python+openpyxl, chromium, MCP, LibreOffice, xin duyệt trước khi cài,"
 echo "     và DỰNG PROJECT E2E theo repo này (dò trước, hỏi bạn, rồi mới làm)."
 echo
-echo "  2. Sau khi /tlm-qa-setup dựng xong project e2e: cp <project>/.env.example <project>/.env"
+echo "  2. Sau khi /qa-setup dựng xong project e2e: cp <project>/.env.example <project>/.env"
 echo "     rồi điền URL + tài khoản test."
 echo
 echo "  3. Điền .claude/qa-config.md — list/space ClickUp chứa bug (còn CHƯA ĐIỀN)."

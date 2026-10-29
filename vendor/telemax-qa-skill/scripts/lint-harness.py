@@ -159,7 +159,7 @@ for path in (glob.glob(".claude/**/*.md", recursive=True)
 # ── 8. Khuôn e2e phải giữ đủ hàng rào ─────────────────────────────────────
 # Khuôn này là thứ mọi repo mới scaffold ra. Mất một hàng rào ở đây là mất nó ở
 # mọi repo cài harness về sau, và không ai phát hiện cho tới lần verify prod đầu.
-TPL = ".claude/skills/tlm-qa-e2e-scaffold/assets/playwright.config.template.ts"
+TPL = ".claude/skills/e2e-scaffold/assets/playwright.config.template.ts"
 if os.path.exists(TPL):
     # Soi CODE, không soi comment. Header của khuôn có nhắc tên từng hàng rào để
     # người đọc biết đừng gỡ — nếu tính cả comment thì gỡ hàng rào thật vẫn xanh.
@@ -180,7 +180,7 @@ if os.path.exists(TPL):
     if tpl.count("storageState:") < 2:
         err(f"{TPL}: staging và prod phải là HAI storageState khác nhau")
 else:
-    err(f"{TPL}: không tồn tại — /tlm-qa-setup không scaffold được project e2e")
+    err(f"{TPL}: không tồn tại — /qa-setup không scaffold được project e2e")
 
 # ── Kết ───────────────────────────────────────────────────────────────────
 print(f"frontmatter: {checked['frontmatter']} file · link: {checked['link']} · "

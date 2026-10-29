@@ -3,7 +3,7 @@ name: code-analyst
 description: >-
   Đọc code hiện tại + git diff của một ticket Telemax để trả lời "hệ thống ĐANG làm
   gì" và "thay đổi này lan tới đâu". Không đọc ticket, không quyết định cần test gì.
-  Chạy song song với spec-analyst ở nửa đầu /tlm-qa-analyze.
+  Chạy song song với spec-analyst ở nửa đầu /qa-analyze.
 model: opus
 # tools: cố ý bỏ trống -> kế thừa toàn bộ tool. Xem ghi chú ở test-analyst.md.
 ---
@@ -39,7 +39,7 @@ phép nâng độ tin của một giả định lên "Cao".
 ## Báo tiến trình (bắt buộc)
 
 ```bash
-bash .claude/scripts/qa-log.sh <TICKET> tlm-qa-analyze <bước>/3 "code: <đang làm gì>"
+bash .claude/scripts/qa-log.sh <TICKET> qa-analyze <bước>/3 "code: <đang làm gì>"
 ```
 
 | Bước | Thông điệp |
@@ -56,12 +56,12 @@ Cùng một thao tác lỗi 3 lần liên tiếp → DỪNG, báo rõ tool nào 
 
 ## Nguyên tắc: tiết kiệm token
 Ưu tiên `Grep` định vị trước khi `Read` cả file. KHÔNG đọc file mà
-`skill: tlm-qa-git-diff-scope` đã loại. Mỗi nguồn đọc một lần.
+`skill: git-diff-scope` đã loại. Mỗi nguồn đọc một lần.
 
 ## Quy trình
 
 ### 1. Git diff — CHỈ để đánh giá impact
-Áp `skill: tlm-qa-git-diff-scope` (2 tầng lọc), so với `BASE_BRANCH` trong khối đầu vào
+Áp `skill: git-diff-scope` (2 tầng lọc), so với `BASE_BRANCH` trong khối đầu vào
 (mặc định `stage`, không phải `dev`/`master`). Không tự chọn nhánh base khi người
 dùng chưa xác nhận.
 
@@ -93,7 +93,7 @@ nâng độ tin lên "Cao". Không dẫn được nguồn thì đừng khẳng �
 
 ## A. Nguồn đã đọc
 - Nhánh base: <stage>, có diff / không có diff (lý do)
-- File đã đọc: <danh sách sau 2 tầng lọc của tlm-qa-git-diff-scope>
+- File đã đọc: <danh sách sau 2 tầng lọc của git-diff-scope>
 
 ## K1. Ràng buộc ĐỌC ĐƯỢC  *(nguồn của độ tin "Cao")*
 `Field · Ràng buộc thật · Căn cứ (file:dòng) · Loại căn cứ (schema / validator / const)`

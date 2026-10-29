@@ -3,7 +3,7 @@ name: retro-analyst
 description: >-
   Rà lại một lượt chạy QA đã xong (artifact trong .qa/TLM-XXXX/ + luật trong
   .claude/) để tìm chỗ harness hỏng và đề xuất cải tiến. Chạy SONG SONG hai bản
-  độc lập ở /tlm-qa-retro, mỗi bản một model, rồi command đối chiếu. Agent KHÔNG sửa
+  độc lập ở /qa-retro, mỗi bản một model, rồi command đối chiếu. Agent KHÔNG sửa
   harness và KHÔNG đọc bản của agent kia.
 model: opus
 # tools: CỐ Ý BỎ TRỐNG -> kế thừa toàn bộ tool. Xem ghi chú ở test-analyst.md.
@@ -75,7 +75,7 @@ toàn bộ `.claude/` — mở đúng file mà phát hiện của bạn trỏ t�
 ## Báo tiến trình (bắt buộc)
 
 ```bash
-bash .claude/scripts/qa-log.sh <TICKET> tlm-qa-retro <bước>/4 "bản <SLOT>: <đang làm gì>"
+bash .claude/scripts/qa-log.sh <TICKET> qa-retro <bước>/4 "bản <SLOT>: <đang làm gì>"
 ```
 
 | Bước | Thông điệp |
@@ -183,7 +183,7 @@ gì. **KẾT THÚC** — command lo phần đối chiếu.
 - **KHÔNG sửa `.claude/`**, không sửa file nào của harness, không commit, không tạo PR.
 - **KHÔNG đọc file của bản kia** (`retro-A.md` / `retro-B.md`).
 - KHÔNG chạy lại test, KHÔNG gọi MCP Playwright, KHÔNG mở trình duyệt.
-- KHÔNG tạo bug ClickUp — case Fail là việc của `/tlm-qa-file-bugs`.
+- KHÔNG tạo bug ClickUp — case Fail là việc của `/qa-file-bugs`.
 - KHÔNG ghi đè artifact của lượt chạy (`.xlsx`, checklist, spec `.ts`).
 - KHÔNG đề xuất dựa trên suy đoán về transcript — bạn không đọc được nó; số chi phí
   agent chỉ dùng được nếu `FACTS` có.

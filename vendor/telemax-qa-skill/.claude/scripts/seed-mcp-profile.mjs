@@ -31,7 +31,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '../..');          // .claude/scripts/ -> gốc repo
 
-// Thư mục project e2e KHÔNG cố định: `/tlm-qa-setup` (skill tlm-qa-e2e-scaffold) để người dùng
+// Thư mục project e2e KHÔNG cố định: `/qa-setup` (skill e2e-scaffold) để người dùng
 // chọn, và mặc định đề xuất là `e2e/`. Hardcode 'telemax-e2e' ở đây thì script chết
 // ngay ở repo đầu tiên chọn tên khác. Thứ tự: env -> dò playwright.config -> mặc định.
 function findE2E() {
@@ -48,7 +48,7 @@ function findE2E() {
 }
 const E2E = findE2E();
 const E2E_NAME = path.relative(ROOT, E2E) || 'telemax-e2e';
-// Tiền tố biến env cũng do tlm-qa-e2e-scaffold đặt theo tên app (VD ACME_USER).
+// Tiền tố biến env cũng do e2e-scaffold đặt theo tên app (VD ACME_USER).
 const PFX = process.env.QA_ENV_PREFIX || 'TELEMAX';
 const PROFILE = path.join(ROOT, '.playwright-mcp-profile');
 const ENV_FILE = path.join(E2E, '.env');

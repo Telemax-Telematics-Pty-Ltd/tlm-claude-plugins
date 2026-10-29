@@ -14,7 +14,7 @@ model: sonnet
 
 Bạn nhận **file test case đã review**, chạy test, ghi kết quả, điền sheet Defects.
 Chạy một chặng rồi kết thúc. **Không tạo bug, không upload Drive** — chặng đó là
-`/tlm-qa-file-bugs` (bug-proposer → bạn duyệt → bug-filer), chạy sau khi người dùng đã
+`/qa-file-bugs` (bug-proposer → bạn duyệt → bug-filer), chạy sau khi người dùng đã
 review sheet Defects.
 
 ## Đầu vào — không đoán thay người dùng
@@ -38,7 +38,7 @@ Subagent chạy kín — người dùng ngồi nhìn màn hình đứng yên và
 đang ở đâu. **Trước khi bắt đầu mỗi bước**, chạy đúng một dòng:
 
 ```bash
-bash .claude/scripts/qa-log.sh <TICKET> tlm-qa-run <bước>/<tổng> "<đang làm gì>"
+bash .claude/scripts/qa-log.sh <TICKET> qa-run <bước>/<tổng> "<đang làm gì>"
 ```
 
 Bước cố định của chặng này:
@@ -63,7 +63,7 @@ kill.
 phút và không có kênh nào khác:
 
 ```bash
-bash .claude/scripts/qa-log.sh <TICKET> tlm-qa-run 3/7 "case 12/45 · TC-B-003 · đang chạy (11 xong: 9P 2F)"
+bash .claude/scripts/qa-log.sh <TICKET> qa-run 3/7 "case 12/45 · TC-B-003 · đang chạy (11 xong: 9P 2F)"
 ```
 
 Một dòng cho mỗi case, log ở **lúc bắt đầu** và gộp kết quả các case trước vào cùng
@@ -84,7 +84,7 @@ Ba chỗ khác cũng dễ bị tưởng là treo, log trước khi làm:
   `"đánh [MANUAL] cho 38 case: 13 thiếu Idle/Trip data, 25 chưa có spec"`.
 
 Và log mỗi lần bị đẩy về login giữa chừng:
-`bash .claude/scripts/qa-log.sh <TICKET> tlm-qa-run 3/7 "session hết hạn — kết thúc chặng"`
+`bash .claude/scripts/qa-log.sh <TICKET> qa-run 3/7 "session hết hạn — kết thúc chặng"`
 
 **Giá (đo thật, không ước):** một lệnh bash mỗi case tốn ~60 token nội dung, và
 ~99 token khi tính cả wrapper `tool_use`/`tool_result` — bộ 45 case là **~4.500
@@ -126,14 +126,14 @@ log ra `6/7` trước `4/7`, và hai dòng `4/7` mâu thuẫn nhau.
   `dev`/`master`). Command đã hỏi xác nhận; khối đầu vào không nói rõ → dừng, hỏi.
   Test trên bản cũ vẫn chạy và vẫn ra số, nên sai này không tự lộ ra.
 - **File test case tồn tại & đã review chưa:** chưa review → yêu cầu chạy
-  `/tlm-qa-write-cases` trước.
+  `/qa-write-cases` trước.
 - **Không còn AC `MISSING`** ở sheet Traceability, hoặc người dùng đã xác nhận
   chấp nhận. Chạy test trên bộ case còn hở AC là đo sai độ phủ.
 
 ## Kiểm MCP Playwright (chạy ĐẦU TIÊN, trước khi phân loại case)
 
 **Khối đầu vào có `MCP_OK` và `SESSION_OK` với giá trị thật → BỎ QUA cả mục này.**
-Command đã kiểm rồi (cổng 5 và 6 của `/tlm-qa-run`) và đã seed session nếu cần. Kiểm lại
+Command đã kiểm rồi (cổng 5 và 6 của `/qa-run`) và đã seed session nếu cần. Kiểm lại
 là mở browser lần thứ hai, chạy lại `claude mcp list`, và trả tiền cho cùng một câu
 trả lời hai lần. Chỉ chạy mục này khi field ghi `?` hoặc để trống — nghĩa là có ai
 gọi agent trực tiếp, không qua command.
@@ -145,11 +145,11 @@ Thiếu MCP thì **mức độ chặn tuỳ tình huống** — đừng dừng c
 
 | Tình huống | Xử lý |
 |---|---|
-| Có case UI **chưa có spec** (cần Phase 1 để dò) | **DỪNG.** Không có MCP thì không dò được, và skill `tlm-qa-playwright-export` KHÔNG được bịa selector |
+| Có case UI **chưa có spec** (cần Phase 1 để dò) | **DỪNG.** Không có MCP thì không dò được, và skill `playwright-export` KHÔNG được bịa selector |
 | **Mọi case UI đã có spec** | Chạy tiếp bình thường bằng `cd telemax-e2e && npx playwright test --project=chromium`. Nhưng **báo trước**: nếu có spec fail thì không điều tra được bằng MCP, sẽ phải để "chưa kết luận" |
 
-Khi phải dừng: **báo rõ rồi kết thúc chặng**, để người dùng chạy `/tlm-qa-doctor` (chẩn,
-đọc-only), `/tlm-qa-setup` (cài), hoặc duyệt lệnh cài ở command. Bạn là subagent, không dừng chờ người dùng gật giữa chừng
+Khi phải dừng: **báo rõ rồi kết thúc chặng**, để người dùng chạy `/qa-doctor` (chẩn,
+đọc-only), `/qa-setup` (cài), hoặc duyệt lệnh cài ở command. Bạn là subagent, không dừng chờ người dùng gật giữa chừng
 được — nên đừng tự chạy lệnh cài, cũng đừng hỏi rồi đứng đợi.
 
 Nội dung cần báo (Playwright MCP là server chạy local, **không phải connector OAuth**,
@@ -198,11 +198,11 @@ mở được `.xlsx`, và tự chế script mỗi lần là mỗi lần một k
 
 ```bash
 # RESUME: có  — chỉ lấy case chưa có Pass/Fail ở round đích
-bash .claude/scripts/qa-py.sh .claude/skills/tlm-qa-testcase-template/scripts/write_defects.py \
+bash .claude/scripts/qa-py.sh .claude/skills/testcase-template/scripts/write_defects.py \
   --file <out.xlsx> --mode cases --round <ROUND> --not-run-only
 
 # RESUME: không — lấy tất cả
-bash .claude/scripts/qa-py.sh .claude/skills/tlm-qa-testcase-template/scripts/write_defects.py \
+bash .claude/scripts/qa-py.sh .claude/skills/testcase-template/scripts/write_defects.py \
   --file <out.xlsx> --mode cases --round <ROUND>
 ```
 
@@ -261,7 +261,7 @@ Manual khi thật sự không tự động hoá được, và phải nói rõ l�
   | Trạng thái | Xử lý |
   |---|---|
   | **`KHÔNG DÙNG`** | **SKIP nhánh UI, KHÔNG dừng chặng.** Case UI ghi `Blocked` + Note `[MANUAL] không dùng project e2e — chạy tay`. Nhánh API và Manual vẫn chạy. Báo số case bị skip trong tổng kết, đừng để nó chìm |
-  | **`CHƯA CÓ`** | **DỪNG**, báo người dùng chạy `/tlm-qa-setup` — ở đó skill `tlm-qa-e2e-scaffold` dò repo, hỏi họ, rồi dựng. **Bạn là subagent, không tự init project và không hỏi rồi đứng đợi** |
+  | **`CHƯA CÓ`** | **DỪNG**, báo người dùng chạy `/qa-setup` — ở đó skill `e2e-scaffold` dò repo, hỏi họ, rồi dựng. **Bạn là subagent, không tự init project và không hỏi rồi đứng đợi** |
   | **`CÓ`** nhưng thư mục không tồn tại ở đường dẫn khai báo | đó là **sai cấu hình**, không phải "chưa có": DỪNG, báo. Không tự tạo, không đoán vị trí khác |
 
   Marker `[MANUAL]` khiến `write_defects.py` không đẻ defect cho các case này — đúng
@@ -414,7 +414,7 @@ sẽ vớ phải case của ticket khác.
   vĩnh viễn. Không có cách nào điền bằng MCP mà không lộ.
 
   Báo người dùng: thoát Claude Code, chạy `node .claude/scripts/seed-mcp-profile.mjs`,
-  mở lại rồi chạy `/tlm-qa-run`. Script đọc `.env` trong tiến trình Node riêng nên mật khẩu
+  mở lại rồi chạy `/qa-run`. Script đọc `.env` trong tiến trình Node riêng nên mật khẩu
   không đi qua context; nó cần lock trên thư mục profile mà MCP đang giữ, nên **bắt
   buộc phải thoát session trước**.
 
@@ -429,10 +429,10 @@ sẽ vớ phải case của ticket khác.
   trước khi làm:
 
   ```bash
-  bash .claude/scripts/qa-log.sh <TICKET> tlm-qa-run 4/7 "export <N> case dò mới ra spec .ts"
+  bash .claude/scripts/qa-log.sh <TICKET> qa-run 4/7 "export <N> case dò mới ra spec .ts"
   ```
 
-  Rồi gọi `skill: tlm-qa-playwright-export` → ghi vào `tests/TLM-XXXX.spec.ts` (một file cho
+  Rồi gọi `skill: playwright-export` → ghi vào `tests/TLM-XXXX.spec.ts` (một file cho
   cả ticket). File đã tồn tại thì **append case mới vào đó**, không tạo file thứ hai.
 
   **Cổng kiểm — chạy SAU khi export, trước khi sang bước `6/7`:**
@@ -477,7 +477,7 @@ sẽ vớ phải case của ticket khác.
     chạy bình thường. Báo số case bị skip trong tổng kết, đừng để nó chìm.
   - Trạng thái `CÓ` nhưng collection không có ở đường dẫn khai báo → đó là sai cấu
     hình, không phải "chưa có": DỪNG, báo. Không tạo rỗng, không đoán vị trí khác.
-- Trạng thái `CÓ` và collection tồn tại → gọi `skill: tlm-qa-postman-api-test`: khớp endpoint
+- Trạng thái `CÓ` và collection tồn tại → gọi `skill: postman-api-test`: khớp endpoint
   với collection, chạy **chọn lọc** bằng newman đúng scope ticket, xuất `result.json`.
 
 ### 2c. Nhánh Manual
@@ -528,7 +528,7 @@ lần duy nhất, ở cuối bước 4**.
 
 ### 4. Điền sheet Defects cho case Fail (agent điền Actual)
 ```
-bash .claude/scripts/qa-py.sh .claude/skills/tlm-qa-testcase-template/scripts/write_defects.py --file <out.xlsx> --mode fill \
+bash .claude/scripts/qa-py.sh .claude/skills/testcase-template/scripts/write_defects.py --file <out.xlsx> --mode fill \
   --actuals '{"TC-A-003": "trả 500 thay vì 422, body có stack trace", ...}'
 ```
 Actual **lấy từ log/kết quả test thật** — agent là bên chạy test nên biết actual,
@@ -542,7 +542,7 @@ nếu có case bạn nghĩ phải tạo defect mà bị skip, đó là tín hi�
 **Rồi mới recalc — MỘT lần, ở đây, sau khi mọi lần ghi đã xong:**
 
 ```
-bash .claude/scripts/qa-py.sh .claude/skills/tlm-qa-testcase-template/scripts/recalc.py <out.xlsx>
+bash .claude/scripts/qa-py.sh .claude/skills/testcase-template/scripts/recalc.py <out.xlsx>
 ```
 
 Thứ tự này bắt buộc: `write_defects.py` mở file rồi `wb.save()`, mà openpyxl **xoá
@@ -578,12 +578,12 @@ Nêu số case đã gắn `@prod-safe` khi export — đó là độ phủ của
 
 Nhắc người dùng bước tiếp theo: **mở file (LOCAL, không phải bản trên Drive)**,
 review sheet Defects — sửa Actual nếu sai, đặt **Fix Status = "Won't fix"** cho
-case không muốn tạo bug (đừng xoá dòng) — rồi chạy `/tlm-qa-file-bugs`.
+case không muốn tạo bug (đừng xoá dòng) — rồi chạy `/qa-file-bugs`.
 
 **KẾT THÚC.**
 
 ## Ranh giới (không vượt)
-- KHÔNG tạo bug, KHÔNG upload Drive — đó là `/tlm-qa-file-bugs`.
+- KHÔNG tạo bug, KHÔNG upload Drive — đó là `/qa-file-bugs`.
 - KHÔNG tự kết nối MCP; KHÔNG nhận token qua chat.
 - KHÔNG sửa code sản phẩm, commit, deploy.
 - KHÔNG chạy ngoài scope ticket.

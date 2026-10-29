@@ -4,8 +4,8 @@
 #   bash .claude/scripts/qa-log.sh <ticket> <chặng> <bước>/<tổng> "<đang làm gì>"
 #
 # Ví dụ:
-#   bash .claude/scripts/qa-log.sh TLM-2899 tlm-qa-analyze 2/6 "lọc git diff theo ticket"
-#   -> [14:32:05 +18s] TLM-2899 · tlm-qa-analyze · 2/6 · lọc git diff theo ticket
+#   bash .claude/scripts/qa-log.sh TLM-2899 qa-analyze 2/6 "lọc git diff theo ticket"
+#   -> [14:32:05 +18s] TLM-2899 · qa-analyze · 2/6 · lọc git diff theo ticket
 #
 # Vì sao cần: subagent chạy kín, người dùng ngồi nhìn màn hình đứng yên vài phút.
 # File log là kênh chắc chắn — mở terminal thứ hai và theo dõi:
@@ -33,7 +33,7 @@ NOW=$(date +%s)
 # Bước đầu của một chặng thì reset mốc thời gian, để "+Ns" là thời gian của chặng
 # này chứ không cộng dồn từ lần chạy trước.
 #
-# NHƯNG: /tlm-qa-analyze chạy spec-analyst và code-analyst SONG SONG, cả hai đều log
+# NHƯNG: /qa-analyze chạy spec-analyst và code-analyst SONG SONG, cả hai đều log
 # "1/3". Reset vô điều kiện thì agent này xoá mốc của agent kia và cột +Ns vô nghĩa
 # suốt chặng. Chỉ reset khi mốc đã cũ (>60s) — tức là một lần chạy mới, không phải
 # agent thứ hai của cùng một lần chạy.

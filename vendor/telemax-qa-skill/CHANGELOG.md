@@ -1,8 +1,79 @@
 # Changelog — Telemax QA Harness
 
+## v3.8 — 2026-09-14
+
+Nhánh **không-có-spec**: ticket rỗng, hoặc tính năng cũ không có ticket nào.
+
+### Vấn đề
+
+Cả pipeline giả định ticket có spec + AC. Thực tế gặp ba trạng thái không có:
+
+1. Ticket chỉ có tiêu đề — "Test Order Module", 0 AC, không Figma
+2. Tính năng làm từ lâu, không ai tạo ticket, không commit nào gắn mã
+3. Ticket dev quên điền mô tả
+
+Trước bản này, cả ba đều đi lọt: `spec-analyst` ghi ra một `analysis-spec.md` rỗng ruột,
+`test-analyst` gộp nó thành checklist **trông như thật**, và không có tín hiệu nào báo.
+Bảng "Thiếu một vế" chỉ bắt *thiếu file*, không bắt *file rỗng ruột*.
+
+Cái sai sâu hơn: nếu để agent nặn spec từ code thì test sinh ra chỉ chứng minh "code làm
+đúng cái code đang làm". Bộ test xanh cả loạt và **không bao giờ đỏ ở chỗ cần đỏ** — vì
+chuẩn để so chính là cái đang bị nghi sai.
+
+### Cách giải
+
+Đổi **nguồn** của vế "yêu cầu", không bỏ vế đó:
+
+```
+ui-explorer   (dò staging qua MCP, VẪN cấm đọc code)  ─┐
+                                                       ├─► test-analyst
+code-analyst  (đọc code, không cần diff)              ─┘
+```
+
+Hai vế vẫn độc lập nên chỗ lệch vẫn có nghĩa — chỉ đọc thành "UI làm A, code làm B".
+
+Và chỉ khẳng định thứ sai **bất kể yêu cầu là gì**: validate thiếu ở BE, quyền không
+check ở BE, nhánh lỗi/rỗng không xử, lệch nhất quán, sai nghiệp vụ telematics. Mỗi
+finding bắt buộc dẫn được **chuẩn nào bị vi phạm**; không dẫn được thì nó là câu hỏi,
+không phải bug. Phần cần ý định con người thành dòng `❓` chờ người ký.
+
+### Hai tốc độ
+
+| | Người dùng tốn | Được |
+|---|---|---|
+| **a — săn bug** (mặc định) | 1 lượt duyệt bug | bug ngay, không docs, không Excel |
+| **b — + spec ngược** | thêm một lượt ký file | bug + spec cho module, đẩy lên ticket |
+
+Ký xong, spec đăng lên mô tả ticket ClickUp → `/qa-analyze` lần sau chạy bình thường.
+Ticket rỗng tự lấp đầy chính nó.
+
+### Thay đổi
+
+- **`ui-explorer`** (agent mới) — dò UI staging, cấm đọc code, chỉ đụng dữ liệu tự tạo
+  (`QA-EXPLORE-*`), không chạy production, không tự dựng request API
+- **`spec-analyst`** — đếm AC/số từ mô tả/Figma, bật cờ `SPEC_INSUFFICIENT`. Báo **sự
+  kiện, không báo kết luận**: ticket QA cố ý rỗng và ticket dev quên điền trông y hệt
+  nhau, người dùng quyết ở command
+- **`test-analyst`** — thêm `MODE: findings | spec-draft`; bảng "Thiếu một vế" bắt thêm
+  case *file có, nội dung rỗng*
+- **`/qa-analyze`** — cổng giữa: một câu hỏi duy nhất, gộp cả phạm vi (tick sẵn từ
+  `K3`/`K4`) lẫn ba lựa chọn
+- **`/qa-apply-feedback`** — nhánh ký duyệt: ✅ → mô tả ticket · ❌ → finding · ❓ →
+  comment hỏi BA. Ghi local trước, duyệt cả lô rồi mới chạm ClickUp
+- **`bug-proposer` / `bug-filer` / `/qa-file-bugs`** — nhận `findings_*.md` làm nguồn
+  thứ hai bên cạnh Excel; nhánh này không có file test case nên không upload Drive
+- **`/qa-status`**, `qa-state.sh` — biết `findings`/`spec-draft`/`spec-signed`; thiếu
+  checklist mà có findings **không phải lệch**
+
+### Ngân sách
+
+Chi tiết nhánh này (~3.300 token) để ở `agents/reference/no-spec-mode.md`, không nằm
+trong command — ticket có spec không trả tiền cho nó. Baseline `/qa-analyze` chỉ tăng
+~700 token (cờ phát hiện + khai báo `MODE`).
+
 ## v3.7 — 2026-09-14
 
-`/tlm-qa-retro` — rà lại lượt chạy vừa xong để tìm chỗ **harness** hỏng.
+`/qa-retro` — rà lại lượt chạy vừa xong để tìm chỗ **harness** hỏng.
 
 ### Vấn đề
 
@@ -65,19 +136,19 @@ mọi phát hiện khác.
 
 ### Ranh giới
 
-`/tlm-qa-retro` **chỉ xuất báo cáo markdown**: không sửa `.claude/`, không commit, không tạo
+`/qa-retro` **chỉ xuất báo cáo markdown**: không sửa `.claude/`, không commit, không tạo
 PR. Sửa harness là lượt làm việc riêng, có review riêng — sửa hỏng một luật là hỏng mọi
 ticket sau.
 
 ### Đụng vào đâu
 
-- `commands/tlm-qa-retro.md`, `agents/retro-analyst.md` — mới
+- `commands/qa-retro.md`, `agents/retro-analyst.md` — mới
 - `qa-state.sh`: thêm chặng thứ bảy `retro` (khai ở **hai** chỗ — bash và python)
 - `smoke-scripts.sh`: 3 ca mới, trong đó có ca bắt trường hợp khai thiếu một trong hai chỗ
-- `tlm-qa-status.md`: bảng bảy chặng; `retro` là chặng **tuỳ chọn**, không giục khi thiếu
+- `qa-status.md`: bảng bảy chặng; `retro` là chặng **tuỳ chọn**, không giục khi thiếu
 - README: 11 command / 9 agent, ngân sách token ~7.700
 
-**Không đụng** `/tlm-qa-analyze` và bộ ba `spec-analyst` / `code-analyst` / `test-analyst`.
+**Không đụng** `/qa-analyze` và bộ ba `spec-analyst` / `code-analyst` / `test-analyst`.
 
 ## v3.6 — 2026-09-14
 
@@ -88,7 +159,7 @@ hiệu nào báo) và một lỗ rò credential.
 
 ### High
 
-1. **`tlm-qa-git-diff-scope` mâu thuẫn cấu trúc với `/tlm-qa-run`.** `/tlm-qa-run` cổng 1 bắt buộc code
+1. **`git-diff-scope` mâu thuẫn cấu trúc với `/qa-run`.** `/qa-run` cổng 1 bắt buộc code
    phải đã lên `stage` mới được test → nhánh feature **luôn** cũ hơn `stage` → cách diff
    đang ưu tiên (`origin/stage...<branch>`) **sai theo thiết kế**, không phải sai vì xui.
    TLM-3088 lôi vào ~65 dòng của người khác. Thêm **Bước 0**: kiểm ticket đã merge chưa
@@ -99,14 +170,14 @@ hiệu nào báo) và một lỗ rò credential.
    `.gitignore` gốc có `/` ở giữa nên **bị neo vào gốc repo**, không khớp
    `telemax-e2e/playwright/.auth/`. File đó chứa `authToken_*` + `refreshToken` **sống**
    (0 cookie — session nằm trong localStorage), và `git status` gộp thành một dòng
-   `?? telemax-e2e/` nên nhìn mắt không thấy. `tlm-qa-e2e-scaffold` nay sinh `.gitignore` **tự
+   `?? telemax-e2e/` nên nhìn mắt không thấy. `e2e-scaffold` nay sinh `.gitignore` **tự
    chứa** trong thư mục e2e; `gitignore.snippet` thêm `**/playwright/.auth/`;
-   `/tlm-qa-setup` + `/tlm-qa-doctor` thêm hàng kiểm bằng `git check-ignore`.
+   `/qa-setup` + `/qa-doctor` thêm hàng kiểm bằng `git check-ignore`.
 
 3. **`fullyParallel: true` trong template** → fail giả hàng loạt trên SPA nặng, triệu
    chứng y hệt selector hỏng. Đổi `false` + `workers: 2`. Biên bản: `DEAD-ENDS.md` §5.
 
-4. **Câu trả lời ở cổng `/tlm-qa-write-cases` không được lưu ở đâu cả** — khối `ĐÃ LÀM RÕ`
+4. **Câu trả lời ở cổng `/qa-write-cases` không được lưu ở đâu cả** — khối `ĐÃ LÀM RÕ`
    chỉ sống trong transcript. Sheet `Assumptions & Questions` có sẵn trong template
    nhưng `build.py` **không có code path nào** ghi vào đó. Nay: command ghi câu trả lời
    vào checklist *trước* khi gọi agent; `cases.json` nhận mảng `assumptions`; `build.py`
@@ -116,10 +187,10 @@ hiệu nào báo) và một lỗ rò credential.
 
 5. **`test-runner` không có return contract** — kết thúc lượt hai lần bằng "đang chờ
    background run…" sau 423k token / 349 tool call / 37 phút. Thêm luật cấm chạy nền +
-   bắt buộc trả khối tổng kết §5; `/tlm-qa-run` thêm nhánh xử khi agent trả về rỗng (đọc số
+   bắt buộc trả khối tổng kết §5; `/qa-run` thêm nhánh xử khi agent trả về rỗng (đọc số
    liệu từ Excel, **không** gọi lại agent mù).
 
-6. **`tlm-qa-playwright-export` thiếu bẫy locator thật của app** — spec fail 30/32 lần chạy
+6. **`playwright-export` thiếu bẫy locator thật của app** — spec fail 30/32 lần chạy
    đầu, 0 lỗi sản phẩm. Thêm 5 bẫy + luật "quá nửa file đỏ → nghi môi trường trước, đừng
    sửa selector". Biên bản: `DEAD-ENDS.md` §4.
 
@@ -130,7 +201,7 @@ hiệu nào báo) và một lỗ rò credential.
 8. **`qa-config.md` ship default tự mâu thuẫn** — `Trạng thái: CÓ` + `telemax-e2e/`
    trong khi `install.sh` không còn copy thư mục đó, mà chính file này quy định trạng
    thái ấy là "SAI CẤU HÌNH: DỪNG". `install.sh` nay tự đặt `CHƯA CÓ` khi cài không kèm
-   `--with-e2e`; bảng trạng thái thêm ngoại lệ cho `/tlm-qa-setup`.
+   `--with-e2e`; bảng trạng thái thêm ngoại lệ cho `/qa-setup`.
 
 ### Low
 
@@ -147,14 +218,14 @@ Cụ thể: 5 bẫy locator mô tả theo **lớp** (dropdown tự chế · tag 
 chuỗi con · `<select>` value-vs-label · field bắt buộc theo biến thể), selector Telemax
 chỉ đứng trong ngoặc làm ví dụ, kèm lời mời bổ sung lớp mới khi gặp ở repo khác. Lý do
 `.gitignore` phải tự chứa nêu theo **quy tắc neo pattern của git**, đúng với mọi bố cục
-thư mục con, không riêng `telemax-e2e/`. Luật `tlm-qa-git-diff-scope` suy ra từ **ràng buộc cấu
-trúc của cổng 1 `/tlm-qa-run`**, nên đúng với mọi ticket đi qua harness.
+thư mục con, không riêng `telemax-e2e/`. Luật `git-diff-scope` suy ra từ **ràng buộc cấu
+trúc của cổng 1 `/qa-run`**, nên đúng với mọi ticket đi qua harness.
 
 ### Không sửa (đã cân nhắc)
 
 - **5 tham chiếu `docs/DEAD-ENDS.md`**: báo cáo review nói là link chết. **Không đúng** —
   file tồn tại, cả 5 link resolve, lint xác nhận.
-- Cascade từ một dòng phản hồi · tách 3 agent ở `/tlm-qa-analyze` · `[MANUAL]` chặn defect ·
+- Cascade từ một dòng phản hồi · tách 3 agent ở `/qa-analyze` · `[MANUAL]` chặn defect ·
   luật gộp defect · cổng `stage` và `[DATA-REQ]` — đều đang chạy đúng thiết kế.
 
 ## v3.5 — 2026-09-10
@@ -163,7 +234,7 @@ Trạng thái xuyên chặng: resume được, và biết mình đang ở đâu.
 
 ### Vấn đề
 
-`RESUME` thêm ở v3.1 **chỉ có trong `/tlm-qa-run`**, và nó suy trạng thái từ cột Result
+`RESUME` thêm ở v3.1 **chỉ có trong `/qa-run`**, và nó suy trạng thái từ cột Result
 trong Excel. Không có gì biết trạng thái **xuyên chặng**: quay lại sau hai ngày thì
 không biết ticket nào đang dở, dở ở đâu, nên chạy lệnh gì tiếp. `progress.log` có
 sẵn nhưng là log append-only cho người đọc, không phải trạng thái máy đọc được.
@@ -186,24 +257,24 @@ Sáu chặng (`analyze` · `apply-feedback` · `write-cases` · `run` · `file-b
 1. **Journal KHÔNG phải nguồn chân lý — artifact trên đĩa mới là.** `state.json` chỉ
    ghi *đã từng chạy gì*; nó không chứng minh file còn tồn tại. Người dùng xoá tay
    một `.xlsx` thì journal vẫn nói `done`. Nên `get`/`list` **luôn dò artifact thật**
-   và trả cả hai vế tách biệt, để `/tlm-qa-status` đối chiếu và **báo khi lệch**.
+   và trả cả hai vế tách biệt, để `/qa-status` đối chiếu và **báo khi lệch**.
 2. **Command ghi, không phải agent.** Agent chết giữa chừng (hết session — chuyện
    thường, chính `test-runner` có nguyên một mục xử lý nó) thì không kịp ghi gì.
    Command vẫn sống sau khi agent kết thúc, nên nó ghi được cả trường hợp `failed`.
 
 Chi tiết khác: ghi **nguyên tử** (tmp + `os.replace`) nên đứt điện không để lại JSON
 cụt · `state.json` hỏng thì tự dựng lại chứ không chặn công việc · `in_progress` có
-`started_at` để `/tlm-qa-status` phát hiện chặng đứt · tham số sai bị từ chối kèm danh
+`started_at` để `/qa-status` phát hiện chặng đứt · tham số sai bị từ chối kèm danh
 sách giá trị hợp lệ.
 
 `.qa/` đã gitignore → trạng thái **cục bộ theo máy**, không chia sẻ giữa người. Đúng
 cho working state; đừng dùng làm nơi báo cáo tiến độ cho team.
 
-### `/tlm-qa-status` — đọc-only
+### `/qa-status` — đọc-only
 
 ```
-/tlm-qa-status              # mọi ticket, mới nhất lên đầu
-/tlm-qa-status TLM-2901     # chi tiết sáu chặng
+/qa-status              # mọi ticket, mới nhất lên đầu
+/qa-status TLM-2901     # chi tiết sáu chặng
 ```
 
 Không ticket nào → nói thẳng **"chưa chạy ticket nào"**, không bịa bảng rỗng.
@@ -217,9 +288,9 @@ Ba thứ nó phải bắt được:
 - **Không có `state.json` KHÔNG nghĩa là chưa làm gì** — ticket chạy từ trước v3.5
   vẫn suy được trạng thái từ artifact.
 - **`in_progress` quá lâu = đứt giữa chừng**, không phải đang chạy. Gợi ý chạy lại
-  đúng chặng đó, và nhắc `/tlm-qa-run` sẽ đề xuất `RESUME: có`.
+  đúng chặng đó, và nhắc `/qa-run` sẽ đề xuất `RESUME: có`.
 
-Điều kiện môi trường hỏng (không phải trạng thái ticket) → trỏ sang `/tlm-qa-doctor`.
+Điều kiện môi trường hỏng (không phải trạng thái ticket) → trỏ sang `/qa-doctor`.
 
 ### Một lỗi tự gây, bắt được bằng test
 
@@ -266,7 +337,7 @@ suy ra từ chính cái sai.
 - **`test-analyst`** (đổi vai) — không đọc nguồn nữa, chỉ tổng hợp hai file. Nguyên
   tắc: **spec là nguồn chính, code không bao giờ ghi đè spec.**
 
-Sản phẩm mới: **mục D6 "Spec ≠ code hiện tại"** trong `tlm-qa-checklist-format`. Ba dạng —
+Sản phẩm mới: **mục D6 "Spec ≠ code hiện tại"** trong `checklist-format`. Ba dạng —
 spec nói A code làm B (test theo **A**, nghi bug) · spec im lặng code có hành vi
 (chưa quyết, đưa câu hỏi vào F) · spec ngụ ý đã có mà code chưa có. Đây là thứ người
 review cần nhìn trước tiên.
@@ -286,7 +357,7 @@ Tách đôi, điểm dừng rơi về **command** — nơi chờ người đư�
 
 - **`bug-proposer`** (mới) — đọc Defects, dựng nội dung, đề xuất assignee, search
   ClickUp chống trùng, ghi `.qa/<T>/bugs-proposed.json`, **kết thúc**. Không tạo gì.
-- **`/tlm-qa-file-bugs`** — trình bảng `TC ID · tiêu đề · priority · assignee · trùng?`,
+- **`/qa-file-bugs`** — trình bảng `TC ID · tiêu đề · priority · assignee · trùng?`,
   xin duyệt **một lần cho cả lô**, cho phép bỏ dòng / đổi assignee / đổi priority.
 - **`bug-filer`** — chỉ thi hành `APPROVED_BUGS`. **Không tự thêm bug** ngoài danh
   sách, kể cả khi đọc file thấy dòng hợp lệ khác.
@@ -294,7 +365,7 @@ Tách đôi, điểm dừng rơi về **command** — nơi chờ người đư�
 Chống trùng chạy trong agent nên kết quả `clickup_search` không đổ vào context chính.
 Tạo bug đứt giữa chừng → chạy lại an toàn, writeback khoá theo TC ID.
 
-### `/tlm-qa-apply-feedback` bỏ subagent
+### `/qa-apply-feedback` bỏ subagent
 
 Chặng này chỉ đọc một file `.md` local, sửa vài mục theo số, ghi lại — không MCP,
 không ticket, không Excel. Chạy thẳng trong session chính.
@@ -305,10 +376,10 @@ buộc phải kết thúc và người dùng chạy lại lệnh. Command hỏi 
 
 `8.456 → 913 token` (−89%).
 
-### `/tlm-qa-doctor` — tách chẩn đoán khỏi cài đặt
+### `/qa-doctor` — tách chẩn đoán khỏi cài đặt
 
-`/tlm-qa-run` từng bảo "chạy `/tlm-qa-setup` để dọn" khi thấy xung đột scope MCP — tức mở
-nguyên một command **cài đặt** để chẩn một lỗi. `/tlm-qa-doctor` là đọc-only: soát môi
+`/qa-run` từng bảo "chạy `/qa-setup` để dọn" khi thấy xung đột scope MCP — tức mở
+nguyên một command **cài đặt** để chẩn một lỗi. `/qa-doctor` là đọc-only: soát môi
 trường, cấu hình, ba bệnh hay gặp (trùng scope MCP · `.mcp.json` lệch qa-config ·
 rơi về `/login` mãi), **đề xuất lệnh sửa nhưng không tự chạy**.
 
@@ -333,14 +404,14 @@ duyệt lô bug phải nằm ở command chứ không trong agent.
 
 | Chặng | Trước | Sau |
 |---|---|---|
-| `/tlm-qa-analyze` (3 chặng cộng lại) | 11.227 | **14.751** (+31%) |
-| `/tlm-qa-apply-feedback` | 8.456 | **913** (−89%) |
-| `/tlm-qa-file-bugs` (2 chặng cộng lại) | 5.021 | **7.115** (+42%) |
-| `/tlm-qa-run` (spec đã có) | 14.306 | 14.630 |
+| `/qa-analyze` (3 chặng cộng lại) | 11.227 | **14.751** (+31%) |
+| `/qa-apply-feedback` | 8.456 | **913** (−89%) |
+| `/qa-file-bugs` (2 chặng cộng lại) | 5.021 | **7.115** (+42%) |
+| `/qa-run` (spec đã có) | 14.306 | 14.630 |
 | frontmatter nạp **mọi session** | 2.040 | **2.586** (+546) |
 
-`/tlm-qa-analyze` đắt hơn 31% là **chủ ý**: đổi token lấy test bám yêu cầu thay vì bám
-code, và lấy mục D6. `/tlm-qa-file-bugs` đắt hơn 42% để có một hàng rào duyệt thật thay
+`/qa-analyze` đắt hơn 31% là **chủ ý**: đổi token lấy test bám yêu cầu thay vì bám
+code, và lấy mục D6. `/qa-file-bugs` đắt hơn 42% để có một hàng rào duyệt thật thay
 vì một hàng rào chỉ tồn tại trên giấy. Frontmatter tăng vì có thêm 3 agent + 1
 command — khoản này trả ở **mọi** session, đáng theo dõi.
 
@@ -357,7 +428,7 @@ rỗng. Chạy nó mù là trái đúng nguyên tắc harness tự đặt: *"kh�
 cải thiện chỉ là cảm giác"*. Chờ lượt chạy thật đầu tiên làm baseline.
 
 **Guard `auth.setup.ts` khi `storageState` còn hạn.** `dependencies: ['setup']` khiến
-mỗi lần `npx playwright test` đều đăng nhập lại (SPA nguội >30s), và một `/tlm-qa-run`
+mỗi lần `npx playwright test` đều đăng nhập lại (SPA nguội >30s), và một `/qa-run`
 gọi ít nhất hai lần. Cắt được, nhưng có rủi ro dùng session cũ — cần đo trước.
 
 
@@ -369,7 +440,7 @@ dưới là những gì **đã kiểm chứng bằng file thật hoặc thực n
 ### Một đề xuất bị BÁC BỎ khi review
 
 Cả kế hoạch ban đầu có mục "precheck session code (`playwright/.auth/user.json`) ở
-cổng `/tlm-qa-run`", với lý do session hết hạn chỉ lộ ra sau khi cả lô spec đã fail.
+cổng `/qa-run`", với lý do session hết hạn chỉ lộ ra sau khi cả lô spec đã fail.
 
 **Tiền đề sai.** Project `chromium` khai `dependencies: ['setup']`, nên Playwright
 chạy `auth.setup.ts` **trước mỗi lần** `npx playwright test` — `user.json` luôn vừa
@@ -405,11 +476,11 @@ lại là ticket không bao giờ được upload. Nay danh sách rỗng → nh�
 
 ### Bỏ việc lặp và lượt chờ người thừa
 
-- **`PRECHECKS_OK` cho `/tlm-qa-verify-prod`** — `prod-verifier` bước 1 đang kiểm lại
+- **`PRECHECKS_OK` cho `/qa-verify-prod`** — `prod-verifier` bước 1 đang kiểm lại
   nguyên vẹn cả 4 cổng của command (gồm một `--list` khởi động Playwright và một
-  `git fetch`). Đúng khuôn `MCP_OK`/`SESSION_OK` mà v3.1 dựng cho `/tlm-qa-run`, chỉ là
+  `git fetch`). Đúng khuôn `MCP_OK`/`SESSION_OK` mà v3.1 dựng cho `/qa-run`, chỉ là
   chưa áp cho chặng này. Cổng của command nay kiểm thêm `Trạng thái` = `KHÔNG DÙNG`.
-- **`/tlm-qa-login` bước 3b chỉ hỏi khi 2FA BẬT.** 2FA đang tắt thì session code tự tạo
+- **`/qa-login` bước 3b chỉ hỏi khi 2FA BẬT.** 2FA đang tắt thì session code tự tạo
   qua `dependencies: ['setup']` — hỏi ở đây là một lượt chờ người **và** một lần
   đăng nhập headed >30s hoàn toàn thừa.
 - **`bug-filer` bước 6 quyết theo `DRIVE_FOLDER`, không "hỏi rồi đợi".** Subagent
@@ -431,24 +502,24 @@ lại là ticket không bao giờ được upload. Nay danh sách rỗng → nh�
 
 | Chặng | v3.1 | v3.3 |
 |---|---|---|
-| `/tlm-qa-analyze` | 10.977 | 11.227 |
-| `/tlm-qa-run` (spec đã có) | 13.786 | 14.306 |
-| `/tlm-qa-run` (+ Phase 1) | 19.102 | 19.726 |
-| `/tlm-qa-file-bugs` | 4.746 | 5.021 |
-| `/tlm-qa-verify-prod` | 3.564 | 3.904 |
+| `/qa-analyze` | 10.977 | 11.227 |
+| `/qa-run` (spec đã có) | 13.786 | 14.306 |
+| `/qa-run` (+ Phase 1) | 19.102 | 19.726 |
+| `/qa-file-bugs` | 4.746 | 5.021 |
+| `/qa-verify-prod` | 3.564 | 3.904 |
 
 Đây là đợt **sửa lỗi và wall-clock**, không phải đợt token. Đổi lại: hai lỗi thật
 được vá, bỏ một lần khởi động LibreOffice (10–20s nguội), bỏ một `--list` +
 `git fetch` ở chặng prod, bỏ một lượt chờ người + một lần đăng nhập headed >30s ở
-`/tlm-qa-login`, và 2–3 vòng tool tuần tự ở `/tlm-qa-analyze`. Một lượt chờ người đáng giá
+`/qa-login`, và 2–3 vòng tool tuần tự ở `/qa-analyze`. Một lượt chờ người đáng giá
 hơn 600 token rất nhiều.
 
 ### Chưa làm — chờ quyết định
 
 Đợt 2 (đổi hợp đồng người-máy) chưa động tới: tách `bug-filer` thành `propose`/`create`
 để hàng rào duyệt lô bug thành thật (hiện `bug-filer` bảo "DỪNG xin duyệt" trong một
-subagent vốn không dừng chờ được) · bỏ subagent cho `/tlm-qa-apply-feedback` · tách
-`/tlm-qa-doctor` · sửa README con số "ba điểm dừng" (thực tế năm).
+subagent vốn không dừng chờ được) · bỏ subagent cho `/qa-apply-feedback` · tách
+`/qa-doctor` · sửa README con số "ba điểm dừng" (thực tế năm).
 
 Đợt 3: `write_defects.py --mode cases` — `load_testcases` hiện **không đọc** cột 3
 (Type), 6 (Precondition), 8 (Test Data), nên `test-runner` phải tự viết openpyxl tạm.
@@ -457,7 +528,7 @@ subagent vốn không dừng chờ được) · bỏ subagent cho `/tlm-qa-apply
 
 Phát hiện mới, chưa xếp lịch: `dependencies: ['setup']` nghĩa là **mỗi** lần gọi
 `npx playwright test` đều đăng nhập lại từ đầu (SPA tải nguội >30s), và một chặng
-`/tlm-qa-run` gọi ít nhất hai lần. Chặn lại được bằng cách guard `auth.setup.ts` khi
+`/qa-run` gọi ít nhất hai lần. Chặn lại được bằng cách guard `auth.setup.ts` khi
 `storageState` còn hạn — nhưng có rủi ro session cũ, cần đo trước.
 
 ### Đã test
@@ -488,15 +559,15 @@ Tệ hơn là nhánh ngược lại: repo đích **đã có** Playwright thì b�
 
 - **`install.sh` không copy project e2e nữa** (mặc định). `--with-e2e` để copy nguyên
   bản Telemax — chỉ đúng khi repo đích là app Telemax cùng form đăng nhập.
-- **Skill mới `tlm-qa-e2e-scaffold`** — dò hiện trạng repo rồi đi một trong ba nhánh:
+- **Skill mới `e2e-scaffold`** — dò hiện trạng repo rồi đi một trong ba nhánh:
 
   | Dò thấy | Nhánh | Làm gì |
   |---|---|---|
   | Đã có `playwright.config.*` | **A** | **Vá** config sẵn có cho đủ 4 hàng rào, đưa diff cho người dùng duyệt. Không ghi đè — config đó có thể đang chạy CI |
   | Chưa có, là app web | **B** | Scaffold từ khuôn, điền phần app-specific (thư mục, URL, tiền tố biến môi trường, selector login) |
-  | Không phải app web / dùng framework khác | **C** | `qa-config` ghi `Trạng thái: KHÔNG DÙNG`; nhánh UI bị skip, **không chặn** `/tlm-qa-run` |
+  | Không phải app web / dùng framework khác | **C** | `qa-config` ghi `Trạng thái: KHÔNG DÙNG`; nhánh UI bị skip, **không chặn** `/qa-run` |
 
-- **`/tlm-qa-setup` mục 2d** — phần hỏi nằm ở command, đúng tầng: command chờ người dùng
+- **`/qa-setup` mục 2d** — phần hỏi nằm ở command, đúng tầng: command chờ người dùng
   được, agent thì không.
 - **`qa-config.md` mục Playwright có `Trạng thái`** (`CÓ` / `CHƯA CÓ` / `KHÔNG DÙNG`),
   cùng quy ước với mục Postman đã có sẵn.
@@ -512,7 +583,7 @@ Tệ hơn là nhánh ngược lại: repo đích **đã có** Playwright thì b�
 
 ### Ranh giới đã ghi rõ, tránh kỳ vọng sai
 
-Harness **chỉ chạy được với Playwright** — `tlm-qa-playwright-export` sinh spec `.ts`,
+Harness **chỉ chạy được với Playwright** — `playwright-export` sinh spec `.ts`,
 `test-runner`/`prod-verifier` gọi `npx playwright test`, `.mcp.json` dùng
 `@playwright/mcp`, hàng rào `@prod-safe` sống trong `playwright.config.ts`. Repo đích
 dùng Cypress/Selenium/pytest thì **không scaffold sang framework đó** — đó là viết lại
@@ -525,7 +596,7 @@ e2e chưa · form login trông thế nào · có phải app web không.
 ### Đã test
 
 `install.sh` vào repo git trống: mặc định ra `.claude/ .gitignore .mcp.json`, không
-có project e2e; `--with-e2e` ra thêm `telemax-e2e/`. Skill `tlm-qa-e2e-scaffold` có mặt ở
+có project e2e; `--with-e2e` ra thêm `telemax-e2e/`. Skill `e2e-scaffold` có mặt ở
 repo đích. Phép thử phá hoại trên cả 4 hàng rào của khuôn — lint bắt được cả 4.
 
 
@@ -538,7 +609,7 @@ dưới là phần đã hợp nhất và thực thi. **Không hàng rào an toà
 
 Nặng nhất trong đợt này. Không truyền `--project` thì Playwright chạy **mọi** project
 khớp, và project `prod` có `testDir: './tests'` không kèm `testIgnore`. Nghĩa là mỗi
-`/tlm-qa-run` trên staging còn kéo theo `setup-prod` (**đăng nhập production**) rồi chạy
+`/qa-run` trên staging còn kéo theo `setup-prod` (**đăng nhập production**) rồi chạy
 lại toàn bộ case `@prod-safe` trên đó — mỗi TC ID ra hai dòng kết quả cho agent đọc,
 và thiếu `PROD_BASE_URL` thì cả lô đỏ, đúng kịch bản "lô bug ma".
 
@@ -549,8 +620,8 @@ và thiếu `PROD_BASE_URL` thì cả lô đỏ, đúng kịch bản "lô bug ma
 
 ### Mâu thuẫn "255" — hàng rào bị vô hiệu ngay tại gốc
 
-`tlm-qa-checklist-format` dạy gán maxlength=255 độ tin **Cao, dùng luôn**; ba chỗ khác
-(`tlm-qa-common-validate`, `testcase-writer`, cổng `/tlm-qa-write-cases`) cấm tuyệt đối. Vì cổng
+`checklist-format` dạy gán maxlength=255 độ tin **Cao, dùng luôn**; ba chỗ khác
+(`common-validate`, `testcase-writer`, cổng `/qa-write-cases`) cấm tuyệt đối. Vì cổng
 chỉ chặn khi *không có giả định Cao ở F*, nhãn "Cao" mở cửa sau cho đúng thứ nó chặn.
 
 Mục F giờ: ràng buộc **số** của field mà spec không nói **luôn là Thấp**; "Cao" phải
@@ -558,9 +629,9 @@ dẫn được căn cứ đọc được. Cổng và `testcase-writer` không nh
 
 ### Wall-clock
 
-- **`git fetch` trước mọi `git log --grep`** (`/tlm-qa-run`, `/tlm-qa-verify-prod`,
-  `prod-verifier`, `tlm-qa-git-diff-scope`). `origin/stage` cũ = chặn oan sau khi dev vừa merge.
-- **`/tlm-qa-run` cổng 6 seed TRƯỚC, không probe bằng MCP.** Gọi tool MCP là chiếm
+- **`git fetch` trước mọi `git log --grep`** (`/qa-run`, `/qa-verify-prod`,
+  `prod-verifier`, `git-diff-scope`). `origin/stage` cũ = chặn oan sau khi dev vừa merge.
+- **`/qa-run` cổng 6 seed TRƯỚC, không probe bằng MCP.** Gọi tool MCP là chiếm
   `SingletonLock`, tự khoá đường của script seed, và lối ra duy nhất là bắt người dùng
   thoát Claude Code. Giờ kiểm lock trước: `FREE` → chạy thẳng `seed-mcp-profile.mjs`
   (đã idempotent, `ALREADY_LOGGED_IN` thì thoát ngay). **Bỏ hẳn một lần restart session.**
@@ -575,10 +646,10 @@ dẫn được căn cứ đọc được. Cổng và `testcase-writer` không nh
 
 ### Vòng lặp người
 
-- **`/tlm-qa-apply-feedback` không chặn khi section rỗng** — nói một lượt rồi kết thúc.
-  `/tlm-qa-analyze` mời có điều kiện: không sửa gì thì đi thẳng `/tlm-qa-write-cases`.
+- **`/qa-apply-feedback` không chặn khi section rỗng** — nói một lượt rồi kết thúc.
+  `/qa-analyze` mời có điều kiện: không sửa gì thì đi thẳng `/qa-write-cases`.
 - **`write_defects.py --mode status`** (đọc-only): phân bố Round, `suggest_round`,
-  `data_req`/`manual` gom theo điều kiện, `ac_missing`. Cổng 2–4 của `/tlm-qa-run` trước
+  `data_req`/`manual` gom theo điều kiện, `ac_missing`. Cổng 2–4 của `/qa-run` trước
   đây đòi những số này mà không script nào cung cấp — nên trên thực tế phải viết
   openpyxl tạm mỗi lần, hoặc bị bỏ qua. Smoke test nhóm 10 phủ nó.
 - **Cổng Figma chuyển từ command xuống `test-analyst`.** Command không đọc ticket nên
@@ -590,12 +661,12 @@ dẫn được căn cứ đọc được. Cổng và `testcase-writer` không nh
 
 | Chặng | Trước | Sau |
 |---|---|---|
-| `/tlm-qa-analyze` | 13.108 | **10.977** (−16%) |
-| `/tlm-qa-write-cases` | 13.310 | **10.452** (−21%) |
-| `/tlm-qa-run` — spec đã có | 18.181 | **13.786** (−24%) |
-| `/tlm-qa-run` — còn Phase 1 | 18.181 | 19.102 (+5%) |
-| `/tlm-qa-file-bugs` | 7.588 | **4.746** (−37%) |
-| `/tlm-qa-verify-prod` | 6.022 | **3.564** (−41%) |
+| `/qa-analyze` | 13.108 | **10.977** (−16%) |
+| `/qa-write-cases` | 13.310 | **10.452** (−21%) |
+| `/qa-run` — spec đã có | 18.181 | **13.786** (−24%) |
+| `/qa-run` — còn Phase 1 | 18.181 | 19.102 (+5%) |
+| `/qa-file-bugs` | 7.588 | **4.746** (−37%) |
+| `/qa-verify-prod` | 6.022 | **3.564** (−41%) |
 
 - **`qa-config.sh <mục>`** — in đúng một mục thay vì `cat` cả file. Giữ **một** file
   (không tách năm) để không mở đường cho hai bản trôi lệch.
@@ -606,14 +677,14 @@ dẫn được căn cứ đọc được. Cổng và `testcase-writer` không nh
 - **`MCP_OK` / `SESSION_OK`** trong khối đầu vào — agent không kiểm lại thứ command
   vừa kiểm.
 
-`/tlm-qa-run` có Phase 1 tăng 5% vì phần thêm vào (RESUME, `--mode status`, luồng
+`/qa-run` có Phase 1 tăng 5% vì phần thêm vào (RESUME, `--mode status`, luồng
 SingletonLock). Đổi lấy một lần restart session và vài chục phút chạy lại — đáng.
 
 ### Bảng ngân sách token trong README
 
 Bảng cũ thấp hơn thực tế **30–77%**: bỏ sót `qa-config.md` (bị đọc ở mọi chặng), bỏ
 sót reference bắt buộc, và dùng hệ số 3,5 ký tự/token trong khi đo thật ra **3,22**.
-Đã viết lại theo tokenizer, thêm dòng `/tlm-qa-apply-feedback`.
+Đã viết lại theo tokenizer, thêm dòng `/qa-apply-feedback`.
 
 Hai quy tắc được sửa, không chỉ cập nhật số:
 
@@ -621,7 +692,7 @@ Hai quy tắc được sửa, không chỉ cập nhật số:
    đó với `qa-config.md` — **không** miễn phí, vì chúng cùng một chặng.
 2. Viết lại quy tắc `reference/`: chỉ tách khi chi tiết được đọc **có điều kiện**.
    Chi tiết dùng ở mọi lần chạy mà tách ra thì chỉ thêm một lượt Read, không bớt
-   token nào — nên mục A–H của `tlm-qa-checklist-format` **giữ nguyên trong SKILL.md**.
+   token nào — nên mục A–H của `checklist-format` **giữ nguyên trong SKILL.md**.
 
 ### Đã cân nhắc và KHÔNG làm
 
@@ -629,7 +700,7 @@ Hai quy tắc được sửa, không chỉ cập nhật số:
   có câu còn đắt hơn. Không bù được rủi ro trôi nghĩa ở các hàng rào đã trả giá.
 - **Gom khối "Cổng đầu vào — Ba mức" (×6 command) vào file dùng chung.** Sáu command
   không bao giờ cùng nạp — trùng lặp này đang miễn phí theo đúng quy tắc 1.
-- **Tách `tlm-qa-checklist-format` / `tlm-qa-playwright-export` ra `reference/`.** Xem quy tắc 2 đã
+- **Tách `checklist-format` / `playwright-export` ra `reference/`.** Xem quy tắc 2 đã
   sửa ở trên.
 - **Cắt các mục `Tự kiểm`.** Chúng là hàng rào chất lượng, dùng ở mọi lần chạy.
 
@@ -716,7 +787,7 @@ bản này.
 | 5 `openpyxl` chỉ có trong venv | đã fix v2.32 bằng `qa-py.sh`; bản này nhận thêm `.qa/.venv` |
 | 6 `auth:headed` | đã có từ v2.19, kèm `auth:prod`, `auth:prod:headed` |
 | 7 `evals/smoke-scripts.sh` | đã fix v2.31 — chuyển vào `.claude/scripts/` |
-| 8 cổng kiểm `/tlm-qa-setup` | đã fix v2.31–v2.32, đủ 4 |
+| 8 cổng kiểm `/qa-setup` | đã fix v2.31–v2.32, đủ 4 |
 | 9 `RESULT BY SECTION` 4 slot | **fix thật ở bản này: 4 → 12 slot** |
 
 ### #9 — nới template từ 4 lên 12 slot
@@ -742,14 +813,14 @@ mái cho gần như mọi ticket nên **chia theo cấu trúc thật, đừng ng
 
 ### #5 — nhận `.qa/.venv` đang có
 Repo của bạn đã dựng venv ở `.qa/.venv`; resolver nhận nó (ưu tiên sau `.claude/.venv` và
-`$QA_PYTHON`) để không phải dựng lại. Nhưng `/tlm-qa-setup` sẽ nêu rằng nên chuyển sang
+`$QA_PYTHON`) để không phải dựng lại. Nhưng `/qa-setup` sẽ nêu rằng nên chuyển sang
 `.claude/.venv`: `.qa/` là thư mục **kết quả theo ticket** — dọn `.qa/` là mất venv.
 
 ### Một chỗ tôi phân loại khác báo cáo
 Báo cáo xếp "thiếu `telemax-e2e/playwright/.auth/user.json`" là **chặn**. Thực tế project
 `chromium` khai `dependencies: ['setup']`, nên Playwright tự chạy `auth.setup.ts` và tạo
 lại `user.json` — miễn là `.env` có credential. Nên nó **không chặn**; cái chặn thật là
-thiếu `.env`. `/tlm-qa-setup` giữ phân loại này.
+thiếu `.env`. `/qa-setup` giữ phân loại này.
 
 ## v2.32 — 2026-09-02
 
@@ -781,7 +852,7 @@ báo lỗi rõ, và **giữ nguyên exit code** — quan trọng vì `build.py` 
 `smoke-scripts.sh` cũng chuyển sang gọi qua resolver.
 
 ### Kèm theo
-- `/tlm-qa-setup` thêm cổng kiểm Python + openpyxl, và tạo `.claude/.venv` khi thiếu. Ghi rõ
+- `/qa-setup` thêm cổng kiểm Python + openpyxl, và tạo `.claude/.venv` khi thiếu. Ghi rõ
   **đừng dựng venv ở chỗ khác**; đã có venv riêng thì trỏ `QA_PYTHON` vào nó.
 - `.gitignore` thêm `.claude/.venv/`.
 - `TESTING.md` thêm hai dòng chẩn đoán: `ModuleNotFoundError: openpyxl`, và "có nhiều
@@ -823,20 +894,20 @@ thì báo lỗi thay vì đi tiếp.
 
 ### `evals/smoke-scripts.sh` — đường dẫn không tồn tại sau khi cài
 README bảo copy `.claude/`, `.mcp.json`, `.gitignore` — **không** copy `evals/`. Nhưng
-`/tlm-qa-setup` lại gọi `bash evals/smoke-scripts.sh`. Chuyển script vào
+`/qa-setup` lại gọi `bash evals/smoke-scripts.sh`. Chuyển script vào
 `.claude/scripts/smoke-scripts.sh` để nó đi theo harness; `evals/` giữ nguyên là tài
 liệu, không bắt buộc copy. Đã sửa đường dẫn nội bộ và chạy lại: xanh 18/18.
 
-### `/tlm-qa-setup` — thêm ba cổng kiểm, đều KHÔNG chặn nhưng phải báo trước
+### `/qa-setup` — thêm ba cổng kiểm, đều KHÔNG chặn nhưng phải báo trước
 - **LibreOffice** (`recalc.py`): thiếu thì Summary trống tới khi mở bằng Excel. Không
-  kiểm thì lỗi chỉ lộ ở cuối `/tlm-qa-write-cases`, sau khoảng 11 phút chạy.
+  kiểm thì lỗi chỉ lộ ở cuối `/qa-write-cases`, sau khoảng 11 phút chạy.
 - **`telemax-e2e/playwright/.auth/user.json`**: điều kiện của mọi lần `npx playwright test`.
 - **Postman collection**: xác nhận trước rằng nhánh API sẽ bị skip, thay vì phát hiện
-  giữa `/tlm-qa-run`.
+  giữa `/qa-run`.
 
 ### Giới hạn 4 section — ghi rõ thay vì để công cụ áp đặt
 Bảng RESULT BY SECTION chỉ có 4 slot; vượt thì `build.py` thoát code 2. Nay ghi thẳng
-vào `tlm-qa-testcase-template` và `testcase-writer`: **chia theo cấu trúc thật của tính năng
+vào `testcase-template` và `testcase-writer`: **chia theo cấu trúc thật của tính năng
 trước**, vượt thì gộp màn hình gần nhau và ghi lý do vào sheet Assumptions — hoặc nới
 bảng trong template, kèm cảnh báo phải tự dịch tham chiếu công thức của các bảng bên dưới.
 
@@ -865,7 +936,7 @@ vì trạng thái bẩn tốn cả buổi truy.
 ### Gom case theo màn hình
 - `test-runner` thêm **bước 0**: sắp case UI gom theo màn hình trước khi chạy, để phần
   lớn reset rơi vào mức 1.
-- `testcase-writer` và `tlm-qa-checklist-format`: chia section/mục C theo **màn hình**, không
+- `testcase-writer` và `checklist-format`: chia section/mục C theo **màn hình**, không
   theo loại kiểm thử. `A. Devices List` chứ không phải `A. Validation` — loại kiểm thử
   đã có cột Type để lọc, không cần dùng section phân loại lần nữa. Chia sai cách thì
   mỗi case nhảy một màn hình khác và buộc điều hướng lại.
@@ -908,11 +979,11 @@ Hậu quả im lặng, không có thông báo lỗi nào:
 
 Thay đổi:
 
-- `/tlm-qa-setup` thêm mục **2c**: `claude mcp list`, phát hiện entry trùng, đề xuất
+- `/qa-setup` thêm mục **2c**: `claude mcp list`, phát hiện entry trùng, đề xuất
   `claude mcp remove playwright -s local` (hoặc `-s user`) và **chờ duyệt** — lệnh này
   sửa cấu hình máy người dùng chứ không chỉ repo. Xác nhận lại bằng `list`, rồi bảo
   thoát và mở lại session.
-- `/tlm-qa-run` gate 5: thấy nhiều hơn một entry `playwright` → **DỪNG**, đừng chạy bằng cấu
+- `/qa-run` gate 5: thấy nhiều hơn một entry `playwright` → **DỪNG**, đừng chạy bằng cấu
   hình không kiểm soát được.
 - `qa-config.md` thêm hai dòng: phạm vi MCP, và triệu chứng của xung đột scope.
 - `TESTING.md` thêm dòng chẩn đoán *".mcp.json đúng hết mà timeout vẫn 5s, seed profile
@@ -923,7 +994,7 @@ Người dùng muốn giữ bản local vì lý do riêng thì tôn trọng, nh�
 
 ## v2.27 — 2026-08-30
 
-Sửa theo báo cáo `ISSUES-2026-08-30.md` từ lần chạy thật `/tlm-qa-run TLM-3088`.
+Sửa theo báo cáo `ISSUES-2026-08-30.md` từ lần chạy thật `/qa-run TLM-3088`.
 
 ### #3 — mâu thuẫn tôi tạo ra ở v2.24 (nghiêm trọng nhất về bảo mật)
 v2.24 bảo agent tự điền form login bằng MCP, đồng thời cấm để mật khẩu lọt ra ngoài.
@@ -933,7 +1004,7 @@ transcript.
 
 Nay: thêm `.claude/scripts/seed-mcp-profile.mjs` — đăng nhập vào chính thư mục profile
 MCP từ một tiến trình Node riêng, đọc `.env` trực tiếp, `ctx.close()` để nhả lock.
-`/tlm-qa-login` gọi script thay vì mô tả điền form. `test-runner` **cấm điền form bằng MCP**;
+`/qa-login` gọi script thay vì mô tả điền form. `test-runner` **cấm điền form bằng MCP**;
 gặp trang login thì kết thúc chặng và bảo người dùng thoát → seed → mở lại.
 
 Sửa một điểm mong manh trong script gốc: bản trong báo cáo dựa vào `cd telemax-e2e` để
@@ -958,9 +1029,9 @@ là rơi vào vòng lặp đăng nhập → vẫn login → xoá `user.json` →
 Cùng phép probe được áp cho nhánh hết session giữa chừng trong `test-runner`.
 
 ### #5, #6, #7
-- `/tlm-qa-setup` thêm mục **đối chiếu từng tham số `.mcp.json` với bảng trong `qa-config`**,
+- `/qa-setup` thêm mục **đối chiếu từng tham số `.mcp.json` với bảng trong `qa-config`**,
   không chỉ kiểm file tồn tại. Kèm kiểm `.gitignore`.
-- Gate 5 của `/tlm-qa-run`: chạm vào `.mcp.json` là **kết thúc session ngay**; MCP đọc args
+- Gate 5 của `/qa-run`: chạm vào `.mcp.json` là **kết thúc session ngay**; MCP đọc args
   lúc khởi động nên sửa giữa session không có tác dụng **và không có tín hiệu nào báo**.
 - Gate 3 (chọn Round) thêm trạng thái thứ ba: Round 1 **chỉ toàn `Blocked`/`Not Run`** và
   Defects rỗng → mặc định **ghi đè Round 1**, vì đẩy sang Round 2 thì `% Executed` của
@@ -970,7 +1041,7 @@ Cùng phép probe được áp cho nhánh hết session giữa chừng trong `te
 Ticket TLM-3088 có 41/45 case rơi vào `[MANUAL]` vì môi trường không đáp ứng, chỉ lộ ra
 ở chặng cuối. Nay `testcase-writer` phải gắn nhãn **`[DATA-REQ] <điều kiện>`** ở đầu cột
 Note cho case *tự động hoá được nhưng cần dữ liệu*, phân biệt với `[MANUAL]` là *không
-tự động hoá được*. `/tlm-qa-run` đếm và **gom theo loại điều kiện** trước khi chạy, thay vì
+tự động hoá được*. `/qa-run` đếm và **gom theo loại điều kiện** trước khi chạy, thay vì
 để phát hiện lúc chạy tới case thứ 30.
 
 ## v2.26 — 2026-08-30
@@ -995,7 +1066,7 @@ Quy tắc đặt ở mục cấp agent "Trình duyệt: MỘT phiên duy nhất"
 - **Chặn vòng lặp:** cùng một case bị đẩy ra 3 lần liên tiếp → DỪNG chặng. Có thể tài
   khoản bị khoá, sai mật khẩu trong `.env`, hoặc chính sản phẩm đang đá người dùng ra.
   Đừng đăng nhập lại lần thứ tư.
-- **Gặp 2FA khi đăng nhập lại** → kết thúc chặng, bảo chạy `/tlm-qa-login`. Agent không chờ
+- **Gặp 2FA khi đăng nhập lại** → kết thúc chặng, bảo chạy `/qa-login`. Agent không chờ
   người dùng nhập mã được.
 
 ### Trường hợp nguy hiểm hơn: session của code hết hạn
@@ -1020,8 +1091,8 @@ sai vị trí**, nên trên thực tế chưa phủ hết.
   command đã mở sẵn lúc đăng nhập.
 - `2a-1` được nhắc lại một dòng: điều tra bằng MCP thì dùng chung phiên đang mở, reset
   hai bước, đừng khởi động phiên mới.
-- `/tlm-qa-run` trước đây **không có dòng nào** về việc giữ cửa sổ khi kết thúc — chỉ
-  `/tlm-qa-login` có. Nay cả hai đều nói.
+- `/qa-run` trước đây **không có dòng nào** về việc giữ cửa sổ khi kết thúc — chỉ
+  `/qa-login` có. Nay cả hai đều nói.
 - Thêm vào mục "Ranh giới (không vượt)" của `test-runner`: `KHÔNG gọi browser_close,
   kể cả khi chặng đã xong`. Ranh giới là chỗ agent đọc kỹ nhất khi phân vân.
 
@@ -1031,7 +1102,7 @@ Bài học lặp lại: nội dung đúng mà đặt trong một nhánh con thì
 
 Agent **tự đăng nhập**; 2FA vẫn là việc của người dùng.
 
-- `test-runner` và `/tlm-qa-login` nay đọc `TELEMAX_USER` / `TELEMAX_PASS` từ
+- `test-runner` và `/qa-login` nay đọc `TELEMAX_USER` / `TELEMAX_PASS` từ
   `telemax-e2e/.env`, tự điền form login và bấm Login. Trước đây cấm tự điền hoàn toàn,
   khiến mỗi lần session hết hạn là phải có người ngồi gõ tay.
 - Tài khoản QA hiện tại đã tắt 2FA nên nhánh chờ-người-dùng ít khi chạm tới. Vẫn giữ
@@ -1074,7 +1145,7 @@ Ba cái bẫy được ghi thẳng vào `test-runner`:
   bug ma gửi cho dev.
 
 ### Phần chạy bằng code
-`tlm-qa-playwright-export` thêm mục "Chờ dữ liệu về": để `expect()` tự retry vào phần tử dữ
+`playwright-export` thêm mục "Chờ dữ liệu về": để `expect()` tự retry vào phần tử dữ
 liệu thật, cấm `page.waitForTimeout` (nguồn flaky số một) và cấm
 `waitUntil: 'networkidle'`. Màn hình chậm thật thì nới timeout của chính assertion đó,
 đừng thêm sleep phía trước.
@@ -1098,9 +1169,9 @@ Trình duyệt **không bao giờ bị đóng**, không chỉ trong một chặn
 
 - `test-runner`: cấm `browser_close` hoàn toàn — không giữa các case, không ở cuối
   chặng, không "dọn dẹp" trước khi kết thúc. Để browser sống tiếp là đúng ý muốn: lệnh
-  `/tlm-qa-run` sau dùng lại ngay, khỏi khởi động lại và khỏi chờ SPA tải nguội. Nó tự tắt
+  `/qa-run` sau dùng lại ngay, khỏi khởi động lại và khỏi chờ SPA tải nguội. Nó tự tắt
   khi người dùng thoát Claude Code.
-- `/tlm-qa-login` cũng để cửa sổ mở nguyên sau khi đăng nhập xong.
+- `/qa-login` cũng để cửa sổ mở nguyên sau khi đăng nhập xong.
 
 ### Cái giá của việc giữ browser, và cách trả
 Browser sống qua nhiều lệnh nghĩa là nó có thể đang ở trang của lần chạy trước, đang mở
@@ -1131,7 +1202,7 @@ Case làm bẩn trạng thái thì điều hướng lại trang, đừng khởi 
 3. **Phần chạy bằng code** — `telemax-e2e/playwright/.auth/user.json`, cũng sống lâu.
 
 Tầng 2 và 3 là **hai session tách biệt**, nên lần đầu cài phải đăng nhập hai lượt.
-`/tlm-qa-login` nay hỏi luôn có muốn làm cả hai trong một lần ngồi không — nói trước là sẽ
+`/qa-login` nay hỏi luôn có muốn làm cả hai trong một lần ngồi không — nói trước là sẽ
 phải nhập mã 2FA lần nữa, thay vì để người dùng phát hiện giữa chừng.
 
 ### Gộp còn một session: có cách, nhưng không đặt mặc định
@@ -1157,17 +1228,17 @@ này, vốn tải nguội mất hơn 30s. `.mcp.json` nay khai báo:
 breaker vì một lần chậm** đầu buổi.
 
 ### 2FA — chờ ở command, không chờ ở agent
-Thêm command **`/tlm-qa-login`**: mở cửa sổ ở trang login, nhường quyền cho người dùng tự
+Thêm command **`/qa-login`**: mở cửa sổ ở trang login, nhường quyền cho người dùng tự
 đăng nhập (kèm mã 2FA), **đợi người dùng gõ `ok`**, rồi chụp snapshot kiểm thật — URL
 không còn `/login`, không còn ô mật khẩu. Chưa đạt thì báo kẹt ở đâu và đợi `ok` lần
 nữa; ba lần vẫn hỏng thì dừng hẳn.
 
-`/tlm-qa-run` cũng có bước này trong cổng đầu vào, nên không phải nhớ chạy `/tlm-qa-login` trước.
+`/qa-run` cũng có bước này trong cổng đầu vào, nên không phải nhớ chạy `/qa-login` trước.
 
 **Vì sao không để agent chờ:** subagent chạy một chặng rồi kết thúc, không dừng đợi
 người dùng nhập 2FA được — "hỏi rồi đợi" ở đó thực chất là đứng im cho tới khi hết giờ.
 `test-runner` nay **kết thúc chặng ngay** khi gặp trang login hoặc màn 2FA, và bảo chạy
-`/tlm-qa-login`. Cùng lý do đã áp cho `claude mcp add` ở v2.13.
+`/qa-login`. Cùng lý do đã áp cho `claude mcp add` ở v2.13.
 
 Agent không nhận mật khẩu/mã 2FA qua chat và không tự điền form — không đổi.
 
@@ -1189,7 +1260,7 @@ Phase 1 nay để lại **bằng chứng bằng file**, không phụ thuộc vi�
   — chuyển từng file sau mỗi case là 20 lệnh bash cho 20 case.
 - Actual của case Fail ghi kèm tên file ảnh, để người review mở đối chiếu thay vì tin
   lời agent.
-- `tlm-qa-clickup-bug-format`: bug từ case UI đính sẵn ảnh có ở `.qa/<ticket>/phase1/` hoặc
+- `clickup-bug-format`: bug từ case UI đính sẵn ảnh có ở `.qa/<ticket>/phase1/` hoặc
   `telemax-e2e/test-results/`, đừng để dev tự dựng lại.
 - `qa-config.md` ghi thêm tuỳ chọn `--image-responses omit`: ảnh vẫn được lưu nhưng
   không nạp vào context — tiết kiệm token, đổi lại agent mất khả năng kiểm bằng mắt.
@@ -1229,9 +1300,9 @@ sổ đang mở**. Không tự điền form, không nhận mật khẩu qua chat
 ## v2.16 — 2026-08-30
 
 - Điền nốt bảng môi trường ↔ nhánh: **production build từ `master`**.
-  Đường đi đầy đủ: feature → **`stage`** (dashboard-stage, test ở `/tlm-qa-run`) →
-  **`master`** (production, verify ở `/tlm-qa-verify-prod`).
-- `/tlm-qa-verify-prod` nay kiểm cụ thể bằng
+  Đường đi đầy đủ: feature → **`stage`** (dashboard-stage, test ở `/qa-run`) →
+  **`master`** (production, verify ở `/qa-verify-prod`).
+- `/qa-verify-prod` nay kiểm cụ thể bằng
   `git log --oneline origin/master --grep="TLM-XXXX"` thay vì chỉ hỏi suông, và vẫn
   hỏi thêm đã build/deploy xong chưa — merge vào `master` và deploy là hai việc khác nhau.
 - Nói rõ hơn vì sao base để so diff là `stage` chứ không phải `master`: `master` là bản
@@ -1248,15 +1319,15 @@ Làm rõ **môi trường ↔ nhánh build**, sau khi biết dashboard-stage bui
   Ghi thẳng: **`stage` KHÔNG phải `dev`, cũng KHÔNG phải `master`.**
 - **Nhánh base để so git diff đổi từ `master` sang `stage`.** So với `master` sẽ lôi
   vào cả thay đổi chưa lên staging, khiến mục G (Impact) nói về vùng ảnh hưởng của một
-  bản mà tester không hề đang test. Sửa ở `tlm-qa-git-diff-scope`, `tlm-qa-analyze`, `test-analyst`.
+  bản mà tester không hề đang test. Sửa ở `git-diff-scope`, `qa-analyze`, `test-analyst`.
 
 ### Lỗ hổng kéo theo, đã bịt
-`/tlm-qa-run` trước đây **không kiểm code của ticket đã lên staging chưa**. Chạy test khi
+`/qa-run` trước đây **không kiểm code của ticket đã lên staging chưa**. Chạy test khi
 code chưa merge vào `stage` là **đo bản cũ rồi ghi kết quả cho ticket mới** — test vẫn
 chạy, vẫn ra số Pass, nên không có gì báo là sai. Cùng loại lỗi với "verify prod trước
-khi deploy" đã chặn ở `/tlm-qa-verify-prod`.
+khi deploy" đã chặn ở `/qa-verify-prod`.
 
-Nay là mục chặn số 1 của `/tlm-qa-run`: kiểm bằng
+Nay là mục chặn số 1 của `/qa-run`: kiểm bằng
 `git log --oneline origin/stage --grep="TLM-XXXX"` rồi hỏi xác nhận đã build chưa.
 Không thấy commit → dừng.
 
@@ -1267,8 +1338,8 @@ Không thấy commit → dừng.
 ## v2.14 — 2026-08-30
 
 - Đường dẫn project Playwright đổi từ `tests/e2e/` sang **`telemax-e2e/`** ở gốc repo,
-  khớp tên thư mục thật. Sửa ở `qa-config.md`, README, `test-runner`, `tlm-qa-setup`,
-  `tlm-qa-playwright-export`, `prod-verifier`.
+  khớp tên thư mục thật. Sửa ở `qa-config.md`, README, `test-runner`, `qa-setup`,
+  `playwright-export`, `prod-verifier`.
 - Mọi lệnh `npx playwright test` trong harness nay có tiền tố `cd telemax-e2e &&`.
   Agent đứng ở gốc repo, nên lệnh không có `cd` sẽ chạy sai chỗ và báo "không tìm thấy
   test" — lỗi trông y hệt như spec chưa tồn tại, dễ khiến agent đi dò lại bằng MCP.
@@ -1281,11 +1352,11 @@ Cài đặt cho repo mới: hai lệnh setup đưa vào harness thay vì nằm t
 - **Kèm sẵn `.mcp.json`** ở gốc bộ này, đã đăng ký Playwright MCP với
   `npx -y @playwright/mcp@latest`. Copy vào gốc repo là xong — thường **không cần**
   `claude mcp add` nữa, chỉ cần khởi động lại session để Claude Code nạp server.
-- **Thêm command `/tlm-qa-setup`**: soát trước những gì đã có (chromium, `.mcp.json`,
+- **Thêm command `/qa-setup`**: soát trước những gì đã có (chromium, `.mcp.json`,
   project e2e, `.env`, `qa-config.md`), xin duyệt **một lượt cho cả lô** rồi chạy, và
   liệt kê rõ phần người dùng phải tự làm — điền `.env`, điền `qa-config.md`, bật
   connector OAuth. Không tự điền `.env`, không hỏi mật khẩu qua chat.
-- `/tlm-qa-run` khi thiếu MCP hoặc thiếu trình duyệt: hỏi có cài ngay không, nêu đúng lệnh
+- `/qa-run` khi thiếu MCP hoặc thiếu trình duyệt: hỏi có cài ngay không, nêu đúng lệnh
   rồi **chờ gật mới chạy**.
 - Lệnh cài dùng đúng `npx -y` — bản trước thiếu `-y` nên treo ở prompt xác nhận của npx.
 
@@ -1312,21 +1383,21 @@ Kèm cảnh báo lỗi `-32000` do bộ gõ tiếng Việt chèn `~` vào cuối
 trong terminal.
 
 ### Chặn quá tay
-Trước đây thiếu MCP là dừng cả chặng `/tlm-qa-run`. Nhưng MCP chỉ cần cho **Phase 1 (dò
+Trước đây thiếu MCP là dừng cả chặng `/qa-run`. Nhưng MCP chỉ cần cho **Phase 1 (dò
 element)**; case đã có spec thì chạy thẳng bằng `npx playwright test`. Nay tách hai
 tình huống: có case chưa có spec → dừng; mọi case đã có spec → chạy tiếp, chỉ báo
 trước rằng spec fail sẽ không điều tra được bằng MCP.
 
 ### Luồng hai phase bị mờ đi ở chỗ dễ thấy nhất
 Đợt gọt description ở v2.8 tôi cắt mất cụm "đã dò qua MCP Playwright ở Phase 1" khỏi
-`description` của `tlm-qa-playwright-export` — mà description là thứ luôn nạp và là chỗ người
+`description` của `playwright-export` — mà description là thứ luôn nạp và là chỗ người
 dùng nhìn thấy đầu tiên. Luồng vẫn được mô tả đầy đủ trong body skill và trong
 `test-runner`, nhưng ở lớp ngoài thì không còn dấu vết. Đã khôi phục.
 
-Ngoài ra `/tlm-qa-run` trước đây **không có dòng nào** nhắc MCP trong cổng đầu vào. Nay
+Ngoài ra `/qa-run` trước đây **không có dòng nào** nhắc MCP trong cổng đầu vào. Nay
 kiểm MCP là mục chặn số 4, kèm mô tả hai phase ngay tại command.
 
-- `tlm-qa-playwright-export` thêm mục yêu cầu MCP sẵn sàng trước, và nhắc lại rằng skill
+- `playwright-export` thêm mục yêu cầu MCP sẵn sàng trước, và nhắc lại rằng skill
   KHÔNG được bịa selector khi không có Phase 1.
 - `qa-config.md` thêm dòng khai báo MCP Playwright.
 - `evals/03` thêm 3 kịch bản con: thiếu MCP + có case mới (dừng), thiếu MCP + đủ spec
@@ -1339,7 +1410,7 @@ Thêm **chặng 6: verify sau khi deploy lên production**.
 Ticket verify xong trên staging, dev fix, deploy lên prod — giờ chạy lại bằng **code**
 (project Playwright, KHÔNG dùng MCP) để chắc production hành xử đúng như staging.
 
-- Thêm command `/tlm-qa-verify-prod TLM-XXXX` và agent `prod-verifier` (`model: sonnet`).
+- Thêm command `/qa-verify-prod TLM-XXXX` và agent `prod-verifier` (`model: sonnet`).
 - Khác hẳn `test-runner`: chỉ chạy spec `.ts` đã có, không dò MCP, không viết spec mới,
   không sửa dữ liệu.
 
@@ -1378,11 +1449,11 @@ luận). Không phân biệt được thì ghi "chưa kết luận" và hỏi, k
 
 Artifact xuất ra viết cho **tester đọc**, không phải cho dev.
 
-- `tlm-qa-checklist-format` thêm mục **"Viết cho ai đọc"**: câu ngắn một ý một dòng; chủ ngữ
+- `checklist-format` thêm mục **"Viết cho ai đọc"**: câu ngắn một ý một dòng; chủ ngữ
   là người dùng hoặc hệ thống chứ không phải hàm/service; gọi đúng tên nhìn thấy trên
   màn hình; không `H1`/`div`/`endpoint`/tên class/tên bảng DB; URL không thay được tên
   màn hình.
-- `tlm-qa-testcase-template` thêm mục **"Giọng văn của Steps và Expected"**: mỗi bước một
+- `testcase-template` thêm mục **"Giọng văn của Steps và Expected"**: mỗi bước một
   thao tác bắt đầu bằng động từ, khoảng 15 từ đổ lại; Expected mô tả cái hiện trên màn
   hình chứ không phải mã HTTP; sheet `Test Cases_VN` là tiếng Việt tự nhiên, không dịch
   máy móc từng chữ.
@@ -1424,10 +1495,10 @@ Rà token. Chi phí mỗi chặng giảm ~20% mà không bỏ hành vi nào.
 
 | Chặng | Trước | Sau |
 |---|---|---|
-| `/tlm-qa-analyze` | 11.500 | 9.500 |
-| `/tlm-qa-write-cases` | 10.200 | 8.400 |
-| `/tlm-qa-run` | 10.000 | 8.100 |
-| `/tlm-qa-file-bugs` | 7.000 | 5.100 |
+| `/qa-analyze` | 11.500 | 9.500 |
+| `/qa-write-cases` | 10.200 | 8.400 |
+| `/qa-run` | 10.000 | 8.100 |
+| `/qa-file-bugs` | 7.000 | 5.100 |
 
 ### Bỏ `input-contract.md`
 File này 1.920 tokens và được nạp ở **mọi** chặng, nhưng mỗi chặng chỉ cần bảng của
@@ -1437,10 +1508,10 @@ chặn/xác nhận/tự quyết rút thành 4 dòng ở đầu mỗi cổng đ�
 tiết kiệm ~1.860 tokens mỗi chặng.
 
 ### Bỏ trùng lặp trong cùng một chặng
-- `test-analyst` chép lại quy tắc mục F mà `tlm-qa-checklist-format` đã quy định — cả hai
+- `test-analyst` chép lại quy tắc mục F mà `checklist-format` đã quy định — cả hai
   cùng nạp ở chặng analyze. Giữ lại đúng phần phán đoán thuộc về agent
   (ràng buộc số không mặc nhiên là độ tin Cao), bỏ phần trình bày.
-- Bảng "Đầu vào skill cần" của `tlm-qa-checklist-format` rút thành 3 dòng văn xuôi.
+- Bảng "Đầu vào skill cần" của `checklist-format` rút thành 3 dòng văn xuôi.
 
 ### Ghi rõ nguyên tắc
 `README.md` thêm mục **Ngân sách token** với số đo và 4 quy tắc, trong đó quan trọng
@@ -1474,7 +1545,7 @@ miễn phí, mọi dòng thêm vào `.claude/` đều có giá ở mỗi lần c
 
 Siết luồng "chưa có ticket": từ *hỏi ba lựa chọn* thành **dừng và bảo tạo ticket trước**.
 
-- `/tlm-qa-analyze` gặp spec dán thẳng vào chat → **DỪNG, chưa phân tích gì**. Bảo người
+- `/qa-analyze` gặp spec dán thẳng vào chat → **DỪNG, chưa phân tích gì**. Bảo người
   dùng tạo ticket rồi quay lại với mã, hoặc để agent tạo giúp: dựng nội dung task
   (tiêu đề, mô tả, AC tách thành danh sách), **đưa duyệt trước khi tạo**, tạo xong
   lấy mã và chạy tiếp luôn — không bắt gõ lại lệnh.
@@ -1488,7 +1559,7 @@ Siết luồng "chưa có ticket": từ *hỏi ba lựa chọn* thành **dừng 
 Khuyến khích có ticket trước khi chạy, và làm cho trường hợp không có ticket **hiện
 rõ trong artifact** thay vì trôi mất.
 
-- `/tlm-qa-analyze` hỏi **một lần** khi người dùng dán spec thẳng vào chat: tự tạo ticket,
+- `/qa-analyze` hỏi **một lần** khi người dùng dán spec thẳng vào chat: tự tạo ticket,
   để agent tạo giúp qua `ClickUp:clickup_create_task` (dựng nội dung rồi chờ duyệt,
   không tự tạo), hay đi tiếp không ticket. Không hỏi lại ở các chặng sau.
 - Đi tiếp không ticket vẫn chạy được, nhưng để lại dấu vết ở đúng ba chỗ người ta sẽ
@@ -1544,7 +1615,7 @@ khỏi tiêu đề để thấy convention là thứ load-bearing.
 ### Postman: chưa có thì skip, không chặn
 Mục Postman trong `qa-config.md` có thêm trường **Trạng thái**:
 
-- `CHƯA CÓ` (mặc định hiện tại) → `/tlm-qa-run` **skip nhánh API và vẫn chạy nhánh UI**.
+- `CHƯA CÓ` (mặc định hiện tại) → `/qa-run` **skip nhánh API và vẫn chạy nhánh UI**.
   Case API ghi `Blocked` + Note `[MANUAL] chưa có Postman collection — chờ bổ sung`.
   Marker `[MANUAL]` khiến `write_defects.py` không tạo defect cho chúng — đúng mong
   muốn, vì chưa chạy thì chưa biết đúng sai, không phải bug.
@@ -1596,7 +1667,7 @@ Phân biệt cốt lõi: giá trị **đọc được từ nguồn thật** là 
 - 4 agent có mục "Đầu vào — không đoán thay người dùng" và bắt buộc kết thúc bằng
   khối tổng kết `Đã hỏi & được xác nhận / Agent tự quyết / Còn treo`.
 - 7 skill có mục "Đầu vào skill cần": bảng cần gì, nguồn ở đâu, thiếu thì làm gì.
-- `tlm-qa-checklist-format`: cấm thay `[Cần hỏi]` bằng giá trị tự nghĩ rồi gắn `[Suy luận]`.
+- `checklist-format`: cấm thay `[Cần hỏi]` bằng giá trị tự nghĩ rồi gắn `[Suy luận]`.
 - Thêm eval `04-input-gate.json` với 4 kịch bản con.
 
 ### Test
@@ -1616,32 +1687,32 @@ Luồng 5 chặng, 3 điểm dừng review, script, template đều giữ nguyê
 ### Chặn (v2.0 không chạy được tới cùng như mô tả)
 - **`recalc.py` không tồn tại.** SKILL.md trỏ tới `<xlsx-skill>/scripts/recalc.py`,
   một placeholder không giải được, trong khi recalc là bước bắt buộc ở 3 skill và
-  3 agent. Nay có `tlm-qa-testcase-template/scripts/recalc.py` thật (LibreOffice headless,
+  3 agent. Nay có `testcase-template/scripts/recalc.py` thật (LibreOffice headless,
   không ghi đè file gốc khi lỗi, báo cách thay thế nếu thiếu LibreOffice).
 - **Tham chiếu `cases.json` mâu thuẫn** — một chỗ nói schema ở "đầu file này"
   (SKILL.md không hề có), chỗ khác nói ở docstring `build.py`. Nay schema nằm ở
   `reference/cases-json.md`, cả SKILL.md lẫn docstring đều trỏ về đó.
-- **TODO treo trong `tlm-qa-clickup-bug-format`** (list/space, tag) khiến `bug-filer` dừng
+- **TODO treo trong `clickup-bug-format`** (list/space, tag) khiến `bug-filer` dừng
   giữa chừng mỗi lần chạy. Nay gom vào `.claude/qa-config.md` — điểm khai báo duy
   nhất, có trạng thái `CHƯA ĐIỀN` rõ ràng.
 
 ### Cấu trúc skill
-- **Progressive disclosure**: `tlm-qa-common-validate` tách thành `reference/web-fields.md`,
+- **Progressive disclosure**: `common-validate` tách thành `reference/web-fields.md`,
   `reference/api.md`, `reference/telematics.md` (SKILL.md 155 → 76 dòng);
-  `tlm-qa-testcase-template` tách `reference/openpyxl-traps.md` (290 → 206 dòng).
+  `testcase-template` tách `reference/openpyxl-traps.md` (290 → 206 dòng).
 - **Description gọn lại** ở cả 7 skill: bỏ phần "skill KHÔNG làm gì" (thuộc body,
   không giúp discovery). Tổng metadata luôn-nạp giảm khoảng 40%.
-- **Ví dụ cụ thể**: thêm `tlm-qa-checklist-format/assets/example-checklist.md` và
-  `tlm-qa-clickup-bug-format/assets/example-bug.md`, theo mẫu `tlm-qa-playwright-export` đã có sẵn.
+- **Ví dụ cụ thể**: thêm `checklist-format/assets/example-checklist.md` và
+  `clickup-bug-format/assets/example-bug.md`, theo mẫu `playwright-export` đã có sẵn.
 - **Bỏ khối "KHUÔN DỰ KIẾN v1"** khỏi body 3 skill — ghi chú cho tác giả, không phải
   hướng dẫn cho agent. Trạng thái đó nay nằm ở README + CHANGELOG.
 - **Khai báo dependency**: `openpyxl`, `newman`, `@playwright/test`, LibreOffice.
 - **Tên MCP tool đầy đủ** dạng `ClickUp:clickup_get_task`, `Figma:get_design_context`
   thay vì nói chung "ClickUp MCP". Ghi rõ dạng `mcp__server__tool` chỉ dùng cho
   allowlist `tools:` trong frontmatter.
-- `tlm-qa-git-diff-scope`: sửa cấp heading ("Luôn xem" bị lệch ra ngoài Tầng 2); chuyển
+- `git-diff-scope`: sửa cấp heading ("Luôn xem" bị lệch ra ngoài Tầng 2); chuyển
   lý luận skill-vs-rule sang README.
-- `tlm-qa-checklist-format`: nói rõ đánh số bắt đầu ở mục C (A và B không đánh số).
+- `checklist-format`: nói rõ đánh số bắt đầu ở mục C (A và B không đánh số).
 
 ### Eval
 - Thêm `evals/` với 3 kịch bản: cấu trúc checklist + lọc diff; build/Traceability
@@ -1684,25 +1755,25 @@ ngược với `cases.json` của v1.
 - LEGEND: nói rõ `Blocked` bao gồm case chờ chạy tay `[MANUAL]`.
 
 ### Skill & agent
-- `rules/git-diff-convention.md` → `skills/tlm-qa-git-diff-scope/` (rule không có `paths:`
+- `rules/git-diff-convention.md` → `skills/git-diff-scope/` (rule không có `paths:`
   nạp vào mọi session, tốn context cả khi không làm QA).
-- `tlm-qa-checklist-format`: sửa mâu thuẫn description (chat vs file); A→H; thêm **mục E2
+- `checklist-format`: sửa mâu thuẫn description (chat vs file); A→H; thêm **mục E2
   (Bảng AC)**; quy tắc append số, không chèn giữa; phản hồi đã xử lý được *chuyển*
   xuống section "Đã xử lý" chứ không xoá.
-- `tlm-qa-common-validate`: thêm **nhóm 11 — dữ liệu telematics** (độ tươi dữ liệu,
+- `common-validate`: thêm **nhóm 11 — dữ liệu telematics** (độ tươi dữ liệu,
   timezone, đơn vị đo, toạ độ/bản đồ, realtime).
-- `tlm-qa-playwright-export`: ưu tiên assertion dương; mở rộng phạm vi export sang
+- `playwright-export`: ưu tiên assertion dương; mở rộng phạm vi export sang
   Boundary/Negative/Business rule *quan sát được trên UI*; cấu hình artifact
   (trace/screenshot/video) để có bằng chứng cho bug.
-- `tlm-qa-clickup-bug-format`: chốt ngôn ngữ; chống trùng với ClickUp chứ không chỉ với
+- `clickup-bug-format`: chốt ngôn ngữ; chống trùng với ClickUp chứ không chỉ với
   file; `Won't fix` thay cho xoá dòng.
 - `test-runner` tách đôi: chạy test (`test-runner`) và tạo bug + upload (`bug-filer`).
 - Thêm **nhánh Manual** để Boundary/Negative không rơi khe và nằm `Not Run` mãi.
 
 ### Còn là "khuôn dự kiến v1" — cần dữ liệu thật của team
-- `tlm-qa-playwright-export`: tinh convention `.ts` sau vài lần chạy Phase 1 thật.
-- `tlm-qa-postman-api-test`: khớp cấu trúc collection thật (folder/naming/auth).
-- `tlm-qa-clickup-bug-format`: list/space đích, tag, priority map, status, rule assign.
+- `playwright-export`: tinh convention `.ts` sau vài lần chạy Phase 1 thật.
+- `postman-api-test`: khớp cấu trúc collection thật (folder/naming/auth).
+- `clickup-bug-format`: list/space đích, tag, priority map, status, rule assign.
 
 ## v1 — 2026-08
 Bản dựng đầu tiên.

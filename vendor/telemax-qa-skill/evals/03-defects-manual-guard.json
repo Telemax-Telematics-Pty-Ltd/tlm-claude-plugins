@@ -1,13 +1,13 @@
 {
   "id": "03-defects-manual-guard",
   "skills": [
-    "tlm-qa-testcase-template",
-    "tlm-qa-clickup-bug-format"
+    "testcase-template",
+    "clickup-bug-format"
   ],
-  "query": "/tlm-qa-run TLM-2899 rồi /tlm-qa-file-bugs TLM-2899",
+  "query": "/qa-run TLM-2899 rồi /qa-file-bugs TLM-2899",
   "fixtures": {
     "testcases": "20 case. Kết quả dựng sẵn: 15 Pass, 3 Fail, 2 không tự động hoá được (cần thiết bị thật)",
-    "user_review": "Sau /tlm-qa-run, người dùng đặt Fix Status = \"Won't fix\" cho 1 trong 3 dòng Fail, và KHÔNG xoá dòng nào"
+    "user_review": "Sau /qa-run, người dùng đặt Fix Status = \"Won't fix\" cho 1 trong 3 dòng Fail, và KHÔNG xoá dòng nào"
   },
   "expected_behavior": [
     "2 case không tự động hoá được: ghi Result = Blocked VÀ cột N bắt đầu bằng '[MANUAL] <lý do>'",
@@ -23,7 +23,7 @@
     "Actual Result do agent điền từ log test thật (message/status cụ thể), không để trống bắt người dùng điền",
     "Dòng defect được APPEND sau dòng cuối có TC ID, không lấp ô trống ở giữa",
     "test-runner DỪNG sau khi điền Defects - không tạo bug, không upload Drive",
-    "/tlm-qa-file-bugs hỏi ở cổng đầu vào đã review bản LOCAL hay bản Drive; bug-proposer DỪNG nếu người dùng review trên Drive mà chưa tải về",
+    "/qa-file-bugs hỏi ở cổng đầu vào đã review bản LOCAL hay bản Drive; bug-proposer DỪNG nếu người dùng review trên Drive mà chưa tải về",
     "write_defects.py --mode read trả về 2 bug (bỏ dòng Won't fix), và báo phần skipped kèm lý do",
     "Search ClickUp chống trùng theo TC ID trước khi tạo bug",
     "DỪNG xin duyệt danh sách bug + assignee MỘT LẦN cho cả lô, không hỏi từng cái",
@@ -73,7 +73,7 @@
       "expected_behavior": [
         "Bước 0: tra tests/TLM-2899.spec.ts trước, xác định 2 case chưa có",
         "Phase 1: dò bằng MCP Playwright cho đúng 2 case đó, không dò lại case đã có spec",
-        "Phase 2: gọi tlm-qa-playwright-export ghi vào cùng file tests/TLM-2899.spec.ts",
+        "Phase 2: gọi playwright-export ghi vào cùng file tests/TLM-2899.spec.ts",
         "Phase 3: chạy npx playwright test verify và đối chiếu Phase 1",
         "Kết quả ghi vào Excel là của Phase 1, không phải của lần verify"
       ]
@@ -87,7 +87,7 @@
         "Không phải vậy thì GHI KẾT QUẢ CÁC CASE ĐÃ CHẠY XONG vào Excel rồi KẾT THÚC CHẶNG",
         "KHÔNG tự đăng nhập lại bằng MCP (browser_type làm lộ mật khẩu nguyên văn trong transcript)",
         "KHÔNG tự chạy seed-mcp-profile.mjs lúc này — MCP đang giữ lock trên thư mục profile, script không mở được",
-        "Báo đúng hai câu: session hết hạn ở case <n>/<tổng>; thoát Claude Code rồi chạy lại /tlm-qa-run <TICKET>, cổng 6 tự đăng nhập lại và RESUME từ case <n>"
+        "Báo đúng hai câu: session hết hạn ở case <n>/<tổng>; thoát Claude Code rồi chạy lại /qa-run <TICKET>, cổng 6 tự đăng nhập lại và RESUME từ case <n>"
       ]
     },
     {

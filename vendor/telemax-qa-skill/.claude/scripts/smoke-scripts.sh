@@ -28,7 +28,7 @@ if [ -z "${SMOKE_TEED:-}" ]; then
   exit $_rc
 fi
 
-SKILL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../skills/tlm-qa-testcase-template" && pwd)"
+SKILL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../skills/testcase-template" && pwd)"
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 
@@ -202,7 +202,7 @@ print("  PASS  Bug ID vào sheet Defects" if in_def else "  FAIL  Bug ID KHÔNG 
 print("  PASS  Bug ID vào sheet Test Cases (cột K)" if in_tc else "  FAIL  Bug ID KHÔNG vào sheet Test Cases")
 PY
 
-# ── 10. --mode status: cổng /tlm-qa-run đọc số bằng MỘT lệnh ───────────────────
+# ── 10. --mode status: cổng /qa-run đọc số bằng MỘT lệnh ───────────────────
 echo "[10] write_defects.py --mode status"
 bash "$(dirname "${BASH_SOURCE[0]}")/qa-py.sh" "$SKILL_DIR/scripts/write_defects.py" \
   --file "$WORK/tc.xlsx" --mode status > "$WORK/status.json" 2>&1
@@ -213,7 +213,7 @@ d = json.load(open(sys.argv[1]))
 for k in ("total_cases","round1","round2","already_run","suggest_round",
           "resume_hint","defect_rows","data_req","manual","ac_missing"):
     print(f"  PASS  status có key {k}" if k in d else f"  FAIL  status THIẾU key {k}")
-# Case [MANUAL] phải hiện ở nhóm manual — đây là nhãn mà /tlm-qa-run đếm trước khi chạy.
+# Case [MANUAL] phải hiện ở nhóm manual — đây là nhãn mà /qa-run đếm trước khi chạy.
 ok = any(m["count"] >= 1 for m in d["manual"])
 print("  PASS  status gom được case [MANUAL]" if ok else "  FAIL  status không thấy case [MANUAL]")
 # Đọc-only: không được đẻ .bak
@@ -269,7 +269,7 @@ cp "$STATE_SH" "$SBOX/.claude/scripts/"
   echo $? > corrupt_rc.txt
   bash .claude/scripts/qa-state.sh set TLM-0001 khong-ton-tai done > /dev/null 2>&1
   echo $? > badstage_rc.txt
-  # chặng retro (/tlm-qa-retro) — thêm sau, dễ quên một trong hai chỗ khai STAGES
+  # chặng retro (/qa-retro) — thêm sau, dễ quên một trong hai chỗ khai STAGES
   bash .claude/scripts/qa-state.sh set TLM-0002 retro done "3 phát hiện" > /dev/null 2>&1
   echo $? > retro_rc.txt
   bash .claude/scripts/qa-state.sh get TLM-0002 > g2.json 2>&1 )
@@ -286,14 +286,14 @@ ck(j("l.json")["tickets"][0]["ticket"] == "TLM-0002", "list sắp mới nhất l
 g = j("g.json")
 ck(g["state"]["stages"]["run"]["status"] == "in_progress", "get đọc đúng trạng thái chặng")
 ck("started_at" in g["state"]["stages"]["run"], "in_progress có started_at (để phát hiện đứt)")
-# Journal và artifact PHẢI tách biệt — /tlm-qa-status dựa vào đó để bắt lệch.
+# Journal và artifact PHẢI tách biệt — /qa-status dựa vào đó để bắt lệch.
 ck(g["artifacts"]["checklist"] is True, "get dò được artifact thật")
 ck(g["artifacts"]["testcase_xlsx"] == [], "artifact không có thì báo không có")
 ck(open(os.path.join(s, "corrupt_rc.txt")).read().strip() == "0",
    "state.json hỏng vẫn set được (tự dựng lại, không chặn công việc)")
 ck(open(os.path.join(s, "badstage_rc.txt")).read().strip() != "0", "chặng sai bị từ chối")
 # Hai chỗ khai STAGES (bash + python trong cùng file) phải khớp nhau. Khai thiếu một
-# chỗ thì `set` qua được nhưng stage_order sai, và /tlm-qa-status hiển thị lệch.
+# chỗ thì `set` qua được nhưng stage_order sai, và /qa-status hiển thị lệch.
 ck(open(os.path.join(s, "retro_rc.txt")).read().strip() == "0", "chặng retro được chấp nhận")
 g2 = j("g2.json")
 ck(g2["state"]["stages"].get("retro", {}).get("status") == "done", "retro ghi được vào state.json")

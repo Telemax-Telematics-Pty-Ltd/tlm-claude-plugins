@@ -73,8 +73,8 @@ That excuses the plan gate only; a path in `sensitivePaths` stays reviewed.
 ## QA harness (telemax-qa-skill)
 
 [telemax-qa-skill](https://github.com/dungvv-hblab-hbg/telemax-qa-skill) is **copied** into
-`vendor/telemax-qa-skill` — the team's QA pipeline for Claude Code: eight `/qa-*` commands, five
-subagents and seven skills driving *ticket → checklist → test-case Excel → run (UI/API) → ClickUp
+`vendor/telemax-qa-skill` — the team's QA pipeline for Claude Code: eleven `/qa-*` commands (upstream's
+names, unchanged), ten subagents and eight skills driving *ticket → checklist → test-case Excel → run (UI/API) → ClickUp
 bug → verify production*, with three human review stops built in.
 
 Like z-harness it is a copy, not a submodule, and its scripts (bash + Python) are deliberately not

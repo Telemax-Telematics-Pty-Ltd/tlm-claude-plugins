@@ -7,7 +7,7 @@
 #
 # Vì sao cần: qa-config.md là điểm khai báo duy nhất nên nó dài, và mọi chặng đều
 # trỏ tới nó. Đọc nguyên file để lấy một bảng là trả tiền cho bốn bảng không dùng —
-# riêng mục Playwright đã chiếm hơn nửa file và chẳng liên quan gì tới /tlm-qa-file-bugs.
+# riêng mục Playwright đã chiếm hơn nửa file và chẳng liên quan gì tới /qa-file-bugs.
 #
 # Giữ MỘT file (không tách thành năm) là có chủ đích: tách ra là mở đường cho hai
 # bản trôi lệch nhau, đúng thứ mà "điểm khai báo duy nhất" đang phòng.

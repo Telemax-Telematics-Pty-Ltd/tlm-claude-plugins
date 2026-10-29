@@ -74,7 +74,7 @@ chỉ có `app-version` nghĩa là profile trống, seed lại vô ích cho tớ
 
 ## 4. Spec .ts fail 30/32 ngay lần chạy đầu — không lỗi nào là lỗi sản phẩm
 
-Biên bản của bộ bẫy locator ghi trong `skills/tlm-qa-playwright-export/SKILL.md`. Đo trên
+Biên bản của bộ bẫy locator ghi trong `skills/playwright-export/SKILL.md`. Đo trên
 TLM-3088 (`[Bug][Reports] Report Period displays 24-hour time…`), dashboard Blazor WASM.
 
 Diễn biến số fail qua từng lần sửa:
@@ -105,7 +105,7 @@ còn lại thuộc về spec.
    **dù** option đầu đã `[selected]`. Spec bỏ qua → report không chạy → trang đứng ở
    "Nothing run yet" → case đỏ như thể mất block Report Period.
 
-**Vì sao nguy hiểm hơn "chỉ là spec sai":** `tlm-qa-playwright-export` quy định *"Phase 1 Pass
+**Vì sao nguy hiểm hơn "chỉ là spec sai":** `playwright-export` quy định *"Phase 1 Pass
 mà spec Fail → spec sai, sửa selector rồi chạy lại"*. Luật đó đúng **cho từng case**.
 Khi 30/32 cùng đỏ, nguyên nhân mang tính hệ thống, và áp luật per-case vào đó là đi sửa
 30 chỗ vốn không hỏng — một vòng lặp không có lối ra.

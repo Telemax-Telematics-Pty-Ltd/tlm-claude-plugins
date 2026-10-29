@@ -6,7 +6,7 @@ một dòng nào trong file này.
 
 Vì sao tách khỏi `test-runner.md`: đây là ~2.000 token chỉ dùng ở một nhánh. Round 2
 trở đi, khi spec đã export xong, nhánh đó thường không chạy nữa — nạp nó mỗi lần
-`/tlm-qa-run` là trả tiền cho tri thức không dùng.
+`/qa-run` là trả tiền cho tri thức không dùng.
 
 ---
 
@@ -26,7 +26,7 @@ Vì sao cứng: mỗi lần mở lại tốn khởi động trình duyệt cộn
 giây), và **tài khoản có bật 2FA thì còn là một lần người dùng phải đi lấy mã**.
 Chặng 20 case mà đóng/mở mỗi case sẽ thành 20 lần chờ người.
 
-Để browser sống tiếp sau khi chặng kết thúc là **đúng ý muốn**: lệnh `/tlm-qa-run` tiếp
+Để browser sống tiếp sau khi chặng kết thúc là **đúng ý muốn**: lệnh `/qa-run` tiếp
 theo dùng lại ngay, không phải khởi động lại. Nó tự đóng khi người dùng thoát Claude
 Code, không cần bạn dọn.
 
@@ -80,10 +80,10 @@ Session có thể hết hạn ngay giữa chặng. Sau mỗi lần điều hư�
 
 3. **Session hết hạn thật → KẾT THÚC CHẶNG.** Báo người dùng đúng hai câu:
 
-   > Session hết hạn ở case <n>/<tổng>. Thoát Claude Code rồi chạy lại `/tlm-qa-run <TICKET>`
+   > Session hết hạn ở case <n>/<tổng>. Thoát Claude Code rồi chạy lại `/qa-run <TICKET>`
    > — cổng 6 sẽ tự đăng nhập lại và tiếp tục từ case <n>, không phải chạy lại từ đầu.
 
-   Không bảo họ tự chạy script: `/tlm-qa-run` làm việc đó ở cổng 6 (nhánh `FREE`).
+   Không bảo họ tự chạy script: `/qa-run` làm việc đó ở cổng 6 (nhánh `FREE`).
    Không tự đăng nhập bằng MCP: `browser_type` với mật khẩu lộ nguyên văn trong
    transcript. Và không tự chạy script lúc này: MCP đang giữ lock trên thư mục
    profile, script sẽ không mở được.
