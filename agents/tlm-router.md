@@ -54,7 +54,8 @@ Decide in this order. The first that matches wins, and you stop.
    the QA harness's own `/qa-*` stages; check `.claude/qa-config.md` exists (installed) and is filled.
    Not installed is not a dead end — that skill installs it from the vendored copy first.
 4. **A ticket id or ticket URL** (implementing, not testing) → `tlm-ticket-workflow`. Requires
-   `tlm.tickets.enabled` and a connected tracker.
+   `tlm.tickets.enabled` and a connected tracker. Its PHASE 1.5 runs the QA Q&A (`tlm-qa-workflow`
+   STEP 4) per `tlm.qa.analyzeOnIntake` — say so, do not route to `tlm-qa-workflow` separately.
 5. **A requirement or bug described in chat, with no ticket yet** → `tlm-ba-ticket`. A bug that is a
    *failed test case* of a QA run is not this — that is `/qa-file-bugs`, which de-duplicates and
    writes the Bug ID back to the Excel.

@@ -1,11 +1,11 @@
 ---
 name: tlm-ticket-workflow
-description: Work a ticket end-to-end from any tracker (ClickUp, Jira, Linear, Azure DevOps, GitHub Issues) — fetch it, move it to in-progress, cut a branch, write a plan file, implement, then sync a non-technical summary back and move it to review. Optionally attaches QA evidence (screenshots, self-test videos). TRIGGER when the user gives a ticket id like TLM-1234 / ABC-567, pastes a ticket URL, or says "work on task", "pick up ticket", "start task", "làm task", "nhận task", "xử lý ticket".
+description: Work a ticket end-to-end from any tracker (ClickUp, Jira, Linear, Azure DevOps, GitHub Issues) — fetch it, optionally run the QA analysis and settle its open questions on the ticket, move it to in-progress, cut a branch, write a plan file, implement, then sync a non-technical summary back and move it to review. Optionally attaches QA evidence (screenshots, self-test videos). TRIGGER when the user gives a ticket id like TLM-1234 / ABC-567, pastes a ticket URL, or says "work on task", "pick up ticket", "start task", "làm task", "nhận task", "xử lý ticket".
 ---
 
 Take a ticket from "assigned" to "in review" in one guided pass:
 
-**Pre-flight → Fetch → In progress → Branch → Plan (approve) → Implement → Sync back**
+**Pre-flight → Fetch → QA Q&A (optional) → In progress → Branch → Plan (approve) → Implement → Sync back**
 
 Tracker-agnostic: the ticket system, id pattern, statuses and branch conventions all come from this
 project's config, so the same flow works on ClickUp, Jira, Linear, Azure DevOps or GitHub Issues.
@@ -50,6 +50,22 @@ with description, subtasks, checklists, dependencies, and the **expanded status 
 
 Show a short summary: name, id, current status, assignee, priority, due date, description (truncate if
 long). If it has subtasks, fetch each — they're part of the scope.
+
+---
+
+## PHASE 1.5 — QA ANALYZE (questions answered before any code)
+
+Read `tlm.qa.analyzeOnIntake` (default `ask`). Runs when a ticket is being **picked up** here — not
+whenever a ticket id is merely mentioned (the analysis costs three agents).
+
+- `never` → skip to PHASE 2.
+- `ask` → one question: "Run the QA analysis for <TICKET> first? It builds a test checklist and the open
+  questions, posts them on the ticket, and applies your answers before branching." No → PHASE 2.
+- `always` → run it.
+
+Run it as `tlm-qa-workflow` STEP 4 (install check first — STEP 1/2 of that skill). The ticket stays in
+this phase until STEP 4 stops: the answers it collects are the requirements the plan in PHASE 4 builds
+on, so read the updated `.qa/<TICKET>/checklist_<TICKET>.md` there.
 
 ---
 

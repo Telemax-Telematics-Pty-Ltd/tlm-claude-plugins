@@ -76,7 +76,8 @@ config):
   **reviewed (`plugin-pr.mjs diff`) and shipped by PR** (see "Where the rules live" below).
 - `tlm-figma-to-code` — Figma link → screen; **hard-stops** if the Framelink MCP is missing/unauthorized
   (never approximates a design from a frame name or screenshot).
-- `tlm-ticket-workflow` — ticket → branch → plan → implement → sync.
+- `tlm-ticket-workflow` — ticket → (QA Q&A) → branch → plan → implement → sync. PHASE 1.5 runs
+  `tlm-qa-workflow` STEP 4 when `tlm.qa.analyzeOnIntake` allows (default `ask`).
 - `tlm-ba-ticket` — BA/PO writing pass: requirement or bug described in chat → **one** ClickUp ticket
   following the team's task/bug templates (`tlm.tickets.baTemplates`). Fills the business sections
   (user story, description, reproduce steps, test scenarios); technical sections (codebase
@@ -103,7 +104,9 @@ config):
   it from the vendored copy when not (additive merge into an existing `.claude/`, **never
   `install.sh --force`**), then routes to the right `/qa-*` stage (analyze → apply-feedback →
   write-cases → run → file-bugs → verify-prod, plus the read-only `/qa-doctor` and `/qa-status`
-  diagnostics and `/qa-retro`, a post-run review of the harness itself). It never re-implements a QA stage inline and never
+  diagnostics and `/qa-retro`, a post-run review of the harness itself). STEP 4 is the ticket Q&A
+  round-trip around the first two stages: analysis summary + section F questions posted on the ticket,
+  answers written into "Phản hồi review", `/qa-apply-feedback`, then the analysis zip attached. It never re-implements a QA stage inline and never
   routes around the harness's three review stops or its read-only-production rule. The eleven
   commands are also copied byte-for-byte into the plugin's `commands/` (listed as
   `/tlm-claude-plugins:qa-*` in every repo); they still need the harness installed to run, and the

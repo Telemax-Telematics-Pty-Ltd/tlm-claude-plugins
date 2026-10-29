@@ -477,6 +477,16 @@
       "defaultAction": { "type": "enum", "values": ["ask"], "default": "ask", "description": "Every flagged ticket is asked about. Nothing is written without the lead's confirmation." }
     },
 
+    "qa": {
+      "analyzeOnIntake": {
+        "type": "enum",
+        "values": ["ask", "always", "never"],
+        "default": "ask",
+        "description": "tlm-ticket-workflow PHASE 1.5: run the QA harness analysis (tlm-qa-workflow STEP 4 — /qa-analyze, open questions posted on the ticket, answers applied with /qa-apply-feedback, analysis zip attached) when a ticket is picked up, before branching. 'never' for repos without the QA harness.",
+        "source": "ask the user once on the first ticket; persist the answer"
+      }
+    },
+
     "chat": {
       "enabled": {
         "type": "boolean",
@@ -672,7 +682,7 @@
     },
     "tlm-ticket-workflow": {
       "mcp": ["context7", "<the MCP for tlm.tickets.system>"],
-      "config": ["tlm.tickets.system", "tlm.tickets.idPattern", "tlm.tickets.statuses", "tlm.project.baseBranch"],
+      "config": ["tlm.tickets.system", "tlm.tickets.idPattern", "tlm.tickets.statuses", "tlm.project.baseBranch", "tlm.qa.analyzeOnIntake (default ask)"],
       "secrets": [],
       "ifMissing": "tickets is an all-or-nothing capability (see companions). If tlm.tickets.enabled is true, REQUIRE the tracker: ask for the system + id pattern inline, connect the MCP/CLI, and verify with one real ticket fetch (name + status) before continuing. If it cannot be connected now, do NOT run a degraded local-only mode — stop and offer two choices: finish setup via /tlm-project-setup, or set tlm.tickets.enabled=false to proceed without a tracker. Persist whatever is configured."
     },
