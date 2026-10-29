@@ -89,6 +89,11 @@ config):
   root's brief. Newest statement wins; internal detail (PRs, files, migrations, names) is left out; one
   comment per target, updated in place, posted only after the user approves the draft.
   `tlm-ticket-workflow` PHASE 6 runs it in Rollup mode when the synced ticket has a parent.
+- `tlm-daily` — team-wide daily ticket check on ClickUp: staging tickets with open subtasks, overdue
+  in-progress/pending tickets, to-do parents with no due date. Grouped by assignee, asks the lead per
+  ticket (update directly or comment-tag the assignee), previews, then applies in one batch. Few MCP
+  calls by design (ClickUp has a daily limit). Config `tlm.daily` (scope + the board's real status
+  names), written by its own inline setup on the first run.
 - `tlm-mobile-release-notes` — commit range → plain-language notes → Slack draft (mobile projects only).
 - `tlm-deployment-checklist` — release check: tickets, services, migrations.
 - `tlm-qa-workflow` — bridge into the **QA harness** vendored at `vendor/telemax-qa-skill` (a copy of
