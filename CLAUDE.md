@@ -104,7 +104,10 @@ config):
   `install.sh --force`**), then routes to the right `/qa-*` stage (analyze → apply-feedback →
   write-cases → run → file-bugs → verify-prod, plus the read-only `/qa-doctor` and `/qa-status`
   diagnostics and `/qa-retro`, a post-run review of the harness itself). It never re-implements a QA stage inline and never
-  routes around the harness's three review stops or its read-only-production rule.
+  routes around the harness's three review stops or its read-only-production rule. The eleven
+  commands are also copied byte-for-byte into the plugin's `commands/` (listed as
+  `/tlm-claude-plugins:qa-*` in every repo); they still need the harness installed to run, and the
+  sync step in `PROVENANCE.md` re-copies them.
 - `tlm-spec-driven` — drives **OpenSpec** (external `npx` CLI, needs Node ≥ 20.19) for spec-first work:
   bootstraps `openspec/` + `/opsx:*` commands, then runs propose → apply → sync → archive, enriching
   `design.md` onto the `_modules/` architecture. **Offered per ticket** (SessionStart hook detects

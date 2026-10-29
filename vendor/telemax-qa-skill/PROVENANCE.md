@@ -73,6 +73,15 @@ and CHANGELOG all say `/qa-*`, and a renamed copy made every one of them wrong i
 script is gone; `tlm-qa-workflow` STEP 1 tells a repo still holding the old `tlm-qa-*` install how to
 replace it.
 
+## The commands are also in the plugin's `commands/`
+
+`commands/qa-*.md` at the plugin root are **byte-identical copies** of `.claude/commands/qa-*.md`
+here (2026-10-29, at the team's request), so every repo lists them as `/tlm-claude-plugins:qa-*`
+without installing anything. Claude Code namespaces plugin commands, agents and skills with the plugin
+name, and the files are not rewritten: they still call `.claude/scripts/*`, `.claude/qa-config.md`
+and the agents by bare name, so they run only in a repo where the harness is installed
+(`tlm-qa-workflow` STEP 2). Re-copy them after every sync (last step below).
+
 ## Syncing, until something automated exists
 
 The patched files (table above) are merged three-way — the last synced upstream commit is the base — so
@@ -86,6 +95,7 @@ T=$(mktemp -d); cp $V/PROVENANCE.md $T/; for f in $PATCHED; do mkdir -p $T/$(dir
 rm -rf $V && mkdir $V && git -C $UP archive main | tar -x -C $V && cp $T/PROVENANCE.md $V/
 for f in $PATCHED; do git -C $UP show $OLD:$f > $T/$f.base
   git merge-file -p $T/$f $T/$f.base $V/$f > $T/$f.out; echo "$f conflicts=$?"; cp $T/$f.out $V/$f; done
+rm -f commands/qa-*.md && cp $V/.claude/commands/qa-*.md commands/ && diff -r $V/.claude/commands commands
 ```
 
 A non-zero `conflicts=` leaves `<<<<<<<` markers in that file — resolve them before committing. Then update the table above. To check a sync, the harness carries its own CI checks — run them from

@@ -24,6 +24,12 @@ say so up front — `/qa-file-bugs` will stop on it.
 > `qa-run.md` has that old copy. Offer to replace it — delete the `tlm-qa-*` commands and skills under
 > `.claude/`, then run STEP 2 (`qa-config.md`, `telemax-e2e/.env` and `.qa/` are kept as they are).
 
+> The plugin also ships the same eleven files, unchanged, in its own `commands/`, so every repo lists
+> them as `/tlm-claude-plugins:qa-*`. They still call the repo's `.claude/scripts/*`, `qa-config.md`
+> and the agents by bare name (`spec-analyst`, …), so in a repo without the harness they fail on the
+> first script. When the user runs one there, stop and do STEP 2 first; once installed, the repo's
+> own `/qa-*` is the one to run.
+
 ## STEP 2 — Install from the vendored copy (ask first)
 
 Source: `${CLAUDE_PLUGIN_ROOT}/vendor/telemax-qa-skill` (the plugin's copy of

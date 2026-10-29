@@ -81,7 +81,9 @@ Like z-harness it is a copy, not a submodule, and its scripts (bash + Python) ar
 wired into this plugin's `hooks.json`. Unlike z-harness it **does** get a bridge:
 [`/tlm-qa-workflow`](skills/tlm-qa-workflow/SKILL.md) detects whether the harness is installed in the
 current repo, installs it from the vendored copy when it is not (additive merge into an existing
-`.claude/`, never `install.sh --force`), and routes QA requests to the right `/qa-*` stage. Read
+`.claude/`, never `install.sh --force`), and routes QA requests to the right `/qa-*` stage. The eleven commands are also copied, unchanged,
+into this plugin's [`commands/`](commands/), so every repo lists them as `/tlm-claude-plugins:qa-*`;
+they still need the harness installed in the repo to run. Read
 [`vendor/telemax-qa-skill/PROVENANCE.md`](vendor/telemax-qa-skill/PROVENANCE.md) before changing
 anything in there, and the harness's own [README](vendor/telemax-qa-skill/README.md) for the manual.
 
