@@ -1,0 +1,92 @@
+{
+  "$comment": "Manifest of the ClickUp docs mirrored into ai/team-knowledge/. Read and rewritten by the tlm-team-knowledge skill (sync mode). mode: mirror = content copied (secrets stripped) into `file`; link-only = indexed but never copied (personal data, or generated reports). updatedAt = the page's ClickUp date_updated (ms) at the last sync; a newer value in ClickUp means the mirror is stale.",
+  "workspaceId": "9016368975",
+  "scope": {
+    "$comment": "Where sync looks for NEW docs. Space-level docs (no folder) count when the space is listed.",
+    "spaceIds": [
+      "90161347648"
+    ],
+    "folderIds": [
+      "901610766834",
+      "1300310000007090"
+    ]
+  },
+  "docs": [
+    {
+      "key": "team-process",
+      "title": "Telemax Team Process",
+      "docId": "8cpnquf-11336",
+      "pageIds": [
+        "8cpnquf-2516"
+      ],
+      "mode": "mirror",
+      "file": "01-team-process.md",
+      "updatedAt": 1793333654811
+    },
+    {
+      "key": "services-credentials",
+      "title": "Services & Credentials",
+      "docId": "8cpnquf-13696",
+      "pageIds": [
+        "8cpnquf-2556",
+        "8cpnquf-2576"
+      ],
+      "mode": "mirror",
+      "file": "02-services-and-access.md",
+      "updatedAt": 1793334999771
+    },
+    {
+      "key": "random-guideline",
+      "title": "Telemax random guideline",
+      "docId": "8cpnquf-9076",
+      "pageIds": [
+        "8cpnquf-2256"
+      ],
+      "mode": "mirror",
+      "file": "02-services-and-access.md",
+      "updatedAt": 1793334839308
+    },
+    {
+      "key": "plugin-guide",
+      "title": "tlm-claude-plugins guide",
+      "docId": "8cpnquf-9136",
+      "pageIds": [
+        "8cpnquf-2316"
+      ],
+      "mode": "mirror",
+      "file": "03-ai-tooling.md",
+      "updatedAt": 1793333693667
+    },
+    {
+      "key": "ai-useful-skills",
+      "title": "AI useful skills",
+      "docId": "8cpnquf-6996",
+      "pageIds": [
+        "8cpnquf-1936"
+      ],
+      "mode": "mirror",
+      "file": "03-ai-tooling.md",
+      "updatedAt": 1785814893798
+    },
+    {
+      "key": "team-contact",
+      "title": "Team Member Contact",
+      "docId": "8cpnquf-9656",
+      "pageIds": [
+        "8cpnquf-2476"
+      ],
+      "mode": "link-only",
+      "reason": "Personal contact details stay in ClickUp; read live when asked.",
+      "updatedAt": 1788939259333
+    },
+    {
+      "key": "sprint-reports",
+      "title": "Sprint reports",
+      "docId": "8cpnquf-8336",
+      "pageIds": [],
+      "mode": "link-only",
+      "reason": "One page per sprint, generated; read live when asked about a sprint.",
+      "updatedAt": 1793148245130
+    }
+  ]
+}

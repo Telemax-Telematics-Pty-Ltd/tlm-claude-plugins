@@ -35,7 +35,13 @@
 //   TLM_OWNER_REPO      Telemax-Telematics-Pty-Ltd/tlm-claude-plugins
 //   TLM_BASE            develop
 //   TLM_BUMP            patch | minor | major
-//   TLM_PR_MODE         gh | compare-url   (default gh, falls back to compare-url)
+//   TLM_PR_MODE         gh | api | compare-url   (default gh, falls back to compare-url)
+//                       api = POST to the GitHub REST API with GITHUB_TOKEN / GH_TOKEN
+//                       (for machines without gh; the token is sent only in the header)
+//   TLM_SYNC_DIRS       comma-separated subtrees to mirror (default skills,ai,hooks,setup).
+//                       tlm-team-knowledge passes ai/team-knowledge so a knowledge sync
+//                       ships that folder alone, whatever else the source dir holds.
+//   TLM_BRANCH_PREFIX   branch prefix (default rule/; tlm-team-knowledge uses knowledge/)
 //   TLM_TITLE           commit/PR title      (open only)
 //   TLM_BODY            commit/PR body        (open only)
 
@@ -55,7 +61,12 @@ const PR_MODE = env.TLM_PR_MODE || 'gh'
 // Subtrees that the vendored copy owns and the PR mirrors upstream. The plugin
 // MANIFEST (.claude-plugin/) is deliberately excluded — its version is managed by
 // the bump step below, not by whatever a stale vendored manifest holds.
-const SYNC_DIRS = ['skills', 'ai', 'hooks', 'setup']
+const SYNC_DIRS = (env.TLM_SYNC_DIRS || 'skills,ai,hooks,setup')
+  .split(',')
+  .map((d) => d.trim().replace(/\\/g, '/').replace(/^\/+|\/+$/g, ''))
+  .filter(Boolean)
+const BRANCH_PREFIX = env.TLM_BRANCH_PREFIX || 'rule/'
+const API_TOKEN = env.GITHUB_TOKEN || env.GH_TOKEN || ''
 const EXCLUDED = new Set(['.git', 'VENDORED.md', 'node_modules', '.next', '.DS_Store'])
 
 const die = (msg) => {
@@ -144,6 +155,8 @@ function preflight() {
   lines.push('  jq    — not needed (JSON handled by Node)')
   lines.push('  rsync — not needed (mirroring handled by Node)')
   if (PR_MODE === 'gh') lines.push(which('gh') ? '  gh   ✓' : '  gh   ✗ — will fall back to compare-url')
+  if (PR_MODE === 'api') lines.push(API_TOKEN ? '  GITHUB_TOKEN ✓' : '  GITHUB_TOKEN ✗ — will fall back to compare-url')
+  lines.push(`  subtrees       : ${SYNC_DIRS.join(' ')}`)
   if (isDir(VENDOR_ABS)) lines.push('  rules copy present ✓')
   else {
     lines.push("  rules copy MISSING ✗ — run /tlm-project-setup to install this project's rules copy")
@@ -227,7 +240,29 @@ function showDiff() {
   git(['-C', CHECKOUT, 'clean', '-fd'])
 }
 
-function openPr(rawSlug) {
+// POST /repos/{owner}/{repo}/pulls. Returns the PR's html_url, or null on any
+// failure (the caller falls back to the compare URL). Never logs the token.
+async function createPrViaApi(branch, title, body) {
+  try {
+    const res = await fetch(`https://api.github.com/repos/${OWNER_REPO}/pulls`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${API_TOKEN}`,
+        Accept: 'application/vnd.github+json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ title, body, head: branch, base: BASE }),
+    })
+    const json = await res.json().catch(() => ({}))
+    if (res.ok && json.html_url) return json.html_url
+    process.stderr.write(`plugin-pr: GitHub API ${res.status}: ${json.message || 'no message'}\n`)
+  } catch (e) {
+    process.stderr.write(`plugin-pr: GitHub API request failed: ${e.message}\n`)
+  }
+  return null
+}
+
+async function openPr(rawSlug) {
   if (!rawSlug) die('usage: plugin-pr.mjs open <slug>')
   const slug = String(rawSlug)
     .toLowerCase()
@@ -235,7 +270,7 @@ function openPr(rawSlug) {
     .replace(/-+/g, '-')
     .replace(/^-+|-+$/g, '')
   if (!slug) die('slug reduced to empty after sanitizing')
-  const branch = `rule/${slug}`
+  const branch = `${BRANCH_PREFIX}${slug}`
 
   prepareCheckout(branch)
   mirrorVendor()
@@ -297,11 +332,19 @@ function openPr(rawSlug) {
     if (res.status === 0) return
     process.stdout.write('gh pr create failed — open the PR from the URL below.\n')
   }
+  if (PR_MODE === 'api' && API_TOKEN) {
+    const url = await createPrViaApi(branch, title, body)
+    if (url) {
+      process.stdout.write(`PR_URL ${url}\n`)
+      return
+    }
+    process.stdout.write('GitHub API PR create failed — open the PR from the URL below.\n')
+  }
   process.stdout.write(`PR_URL ${compare}\n`)
 }
 
 const [cmd, arg] = process.argv.slice(2)
 if (cmd === 'preflight') preflight()
 else if (cmd === 'diff') showDiff()
-else if (cmd === 'open') openPr(arg)
+else if (cmd === 'open') await openPr(arg)
 else die('usage: plugin-pr.mjs {preflight | diff | open <slug>}')

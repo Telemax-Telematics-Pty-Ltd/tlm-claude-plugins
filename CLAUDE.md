@@ -95,6 +95,12 @@ config):
   ticket (update directly or comment-tag the assignee), previews, then applies in one batch. Few MCP
   calls by design (ClickUp has a daily limit). Config `tlm.daily` (scope + the board's real status
   names), written by its own inline setup on the first run.
+- `tlm-team-knowledge` — team questions (process, statuses, QC naming, Slack, leave, shared accounts,
+  repos, onboarding) answered from `ai/team-knowledge/`, a mirror of the team's ClickUp docs, then the
+  docs live. **Sync** mode scans the ClickUp docs in `ai/team-knowledge/sources.json`'s scope, re-mirrors
+  new/changed pages (English, secrets and personal data stripped), and ships **only that folder** to this
+  repo with `plugin-pr.mjs` (`TLM_SYNC_DIRS=ai/team-knowledge`, branch `knowledge/<slug>`). No `tlm`
+  config. Don't hand-edit the mirror — change the ClickUp doc and sync.
 - `tlm-mobile-release-notes` — commit range → plain-language notes → Slack draft (mobile projects only).
 - `tlm-deployment-checklist` — release check: tickets, services, migrations.
 - `tlm-qa-workflow` — bridge into the **QA harness** vendored at `vendor/telemax-qa-skill` (a copy of
@@ -158,7 +164,9 @@ never seen by the team. So since **v2.5.0** a consuming project keeps its own co
    go-ahead is required before step 6 — it is the only gate between a stray edit and the whole team.
 6. **Ship** — `plugin-pr.mjs open <slug>` clones the upstream (`tlm.pluginRepo`), mirrors the subtrees
    onto `rule/<slug>`, **bumps the version in lockstep** across the three manifest fields, pushes, and
-   opens the PR with `gh` (`prMode` default; falls back to printing a compare URL). Upstream and base
+   opens the PR with `gh` (`prMode` default), or the GitHub REST API with `GITHUB_TOKEN` when
+   `TLM_PR_MODE=api` (machines without `gh`); otherwise it prints a compare URL. `TLM_SYNC_DIRS` narrows
+   the mirror to named subtrees (`tlm-team-knowledge` ships `ai/team-knowledge` alone). Upstream and base
    default to `Telemax-Telematics-Pty-Ltd/tlm-claude-plugins` / `develop`. It never touches `${CLAUDE_PLUGIN_ROOT}`.
 
 The config contract is `tlm.pluginRepo` in `setup/tlm-config.reference.json`.

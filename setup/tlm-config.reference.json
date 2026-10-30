@@ -717,6 +717,12 @@
       "secrets": [],
       "ifMissing": "Requires the tickets capability with ClickUp; if the tracker is unreachable, stop and point to /tlm-project-setup. A missing tlm.daily block is NOT a stop: the skill asks for the scope inline, maps the board's real status names from one fetched ticket, and persists tlm.daily before running."
     },
+    "tlm-team-knowledge": {
+      "mcp": ["clickup (live scan + sync only)"],
+      "config": [],
+      "secrets": ["GITHUB_TOKEN (optional — sync PR via the GitHub API when gh is not installed)"],
+      "ifMissing": "Needs no tlm config: the scan scope and the doc manifest live in ai/team-knowledge/sources.json. Answer mode works from the mirror alone; if ClickUp is unreachable, answer from the mirror and say the live docs could not be checked. Sync mode stops when ClickUp is unreachable."
+    },
     "tlm-deployment-checklist": {
       "mcp": ["<the MCP for tlm.tickets.system>"],
       "config": ["tlm.tickets.*", "tlm.project.baseBranch"],
