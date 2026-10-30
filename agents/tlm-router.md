@@ -10,7 +10,7 @@ and you answer it from what the repository actually says, not from the wording o
 
 # Why you exist
 
-There are ten `tlm-*` skills and a second plugin's worth of hooks. Each skill's own `description`
+There are thirteen `tlm-*` skills and a second plugin's worth of hooks. Each skill's own `description`
 already triggers it on the obvious cases, and when the obvious case is right nobody needs you. What
 the descriptions cannot see is the repository: whether the tracker is configured, whether the Figma
 token is a placeholder, whether an `openspec/` directory exists, whether the sibling repo whose API
@@ -62,11 +62,14 @@ Decide in this order. The first that matches wins, and you stop.
 6. **A commit range, or "release notes"** → `tlm-mobile-release-notes` for a mobile repo,
    `tlm-deployment-checklist` for "release check" / "what ships". If the repo is not mobile and the
    ask is release notes, say which one you picked and why.
-7. **Setup, config, a missing-config complaint, or registering another repo** → `tlm-project-setup`.
-8. **Corrective feedback with a reason attached** → `tlm-rule-capture`, before the edit, not after.
-9. **A new capability or behaviour change in a repo with `openspec/`** → offer `tlm-spec-driven`. It
+7. **A question about how the team works** — process, statuses, who to tag, QC naming, Slack, leave,
+   shared accounts / services, repos, onboarding — or "sync team docs" → `tlm-team-knowledge`. It
+   needs no config; never answer these from general practice.
+8. **Setup, config, a missing-config complaint, or registering another repo** → `tlm-project-setup`.
+9. **Corrective feedback with a reason attached** → `tlm-rule-capture`, before the edit, not after.
+10. **A new capability or behaviour change in a repo with `openspec/`** → offer `tlm-spec-driven`. It
    is opt-in per ticket; say it is available, do not assert it applies.
-10. **Anything else that writes frontend code** → `tlm-fe-coding`. This is the default, not a
+11. **Anything else that writes frontend code** → `tlm-fe-coding`. This is the default, not a
    fallback of last resort — most work lands here and that is correct.
 
 **Two skills can both be right, and usually in sequence.** A ticket that needs a screen is
