@@ -8,17 +8,18 @@
 
 ## Shared developer account
 
-- **developer@telemax.com.au** is the shared account for the team services below. Don't create these
+- **developer@telemax.com.au** is the shared account for the team services below (App Store Connect
+  not yet). Don't create these
   with a personal account — what the team builds, deploys or releases must survive someone leaving.
 - Access to the account: ask **Tony / Steph** (shared through a secure channel, never in chat).
 
-| Service | Used for |
-|---|---|
-| Vercel | Hosting / deployments for web projects |
-| GitHub org (common) | `Telemax-Telematics-Pty-Ltd` |
-| Firebase | App distribution, push, mobile backend (Installer / Fleet apps) |
-| App Store Connect | iOS builds, TestFlight, App Store releases |
-| Google Play Console | Android builds, testing tracks, Play Store releases |
+| Service | Used for | Shared account |
+|---|---|---|
+| Vercel | Hosting / deployments for web projects | ✅ |
+| GitHub org (common) | `Telemax-Telematics-Pty-Ltd` | ✅ |
+| Firebase | App distribution, push, mobile backend (Installer / Fleet apps) | ✅ |
+| Google Play Console | Android builds, testing tracks, Play Store releases | ✅ |
+| App Store Connect | iOS builds, TestFlight, App Store releases | ⏳ **not created yet** — ask Tony / Steph |
 
 Per-developer tokens (Figma, Context7, …) are personal: local `.claude/settings.local.json` / `.env`
 only, never committed, never pasted into ClickUp / Slack / a prompt.
@@ -40,7 +41,6 @@ only, never committed, never pasted into ClickUp / Slack / a prompt.
   (read it live; not mirrored).
 - **Telemax Customer Portal (staging)**: `https://telemax-portal-staging.vercel.app/` — customers reach
   it from the dashboard `https://dashboard-stage.telemax.com.au/` → **Manage account**.
-
 - **Installer / Fleet management apps** — Firebase App Distribution (Android) and App Store Connect
   (iOS). Ask Steph / Tony for access.
 - **SMS command page (stage)**: `https://dashboard-stage.telemax.com.au/commands/sms`
