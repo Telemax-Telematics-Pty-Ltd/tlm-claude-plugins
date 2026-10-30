@@ -12,7 +12,7 @@ and ships it upstream by PR, so a new or edited doc reaches every teammate's plu
 | File | Covers | ClickUp source (`sources.json` key) |
 |------|--------|-------------------------------------|
 | [01 — Team process](01-team-process.md) | Board statuses + colors, daily routine, WIP limit, ownership, EPIC template, QC naming, Slack, leave & OOO | `team-process` |
-| [02 — Services & access](02-services-and-access.md) | Shared developer account (Vercel, GitHub org, Firebase, App Store Connect, Play Console), repositories, app links | `services-credentials`, `random-guideline` |
+| [02 — Services & access](02-services-and-access.md) | Shared developer account (Vercel, GitHub org, Firebase, App Store Connect, Play Console), repositories, app links, Telemax Ops (Orders, Customer Portal) | `services-credentials`, `random-guideline` |
 | [03 — AI tooling](03-ai-tooling.md) | Installing this plugin, connectors, `/tlm-project-setup`, AI use cases | `plugin-guide`, `ai-useful-skills` |
 | *(link only)* | Team member contacts | `team-contact` — personal data, read live, never mirrored |
 | *(link only)* | Sprint reports | `sprint-reports` — read live |

@@ -35,6 +35,12 @@ only, never committed, never pasted into ClickUp / Slack / a prompt.
 
 ## Apps & environments
 
+- **Telemax Orders (staging)**: `https://telemax-orders-staging.vercel.app/` — Telemax-Ops repo, on
+  Vercel. The staging admin login is on the ClickUp page *Telemax Ops — Orders & Customer Portal*
+  (read it live; not mirrored).
+- **Telemax Customer Portal (staging)**: `https://telemax-portal-staging.vercel.app/` — customers reach
+  it from the dashboard `https://dashboard-stage.telemax.com.au/` → **Manage account**.
+
 - **Installer / Fleet management apps** — Firebase App Distribution (Android) and App Store Connect
   (iOS). Ask Steph / Tony for access.
 - **SMS command page (stage)**: `https://dashboard-stage.telemax.com.au/commands/sms`
