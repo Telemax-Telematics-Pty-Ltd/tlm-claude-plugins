@@ -187,6 +187,9 @@ parent shows this slice's new state.
 - **Confirm before every outward action** — status changes and comments are visible to the team.
 - Plan files and ticket comments in `commentLanguage` (default English), whatever language the chat is in.
 - Comments are non-technical. Plans are technical. Don't mix them up.
+- **Cite the source of truth; write test cases out.** A requirement or expected result names its source —
+  Figma node link + frame/layer, artifact link + section, or the quoted AC / PO comment. A test case is
+  never only `TC-007` / `#12`: give ID + title + expected result + source. → `ai/shared-fe/20-ticket-communication.md`
 - No emojis in plans or comments.
 - Never invent a ticket id. If the given id doesn't resolve, say so and ask.
 - Media is optional. Attach to the ticket, reference from a comment — never try to embed a file in

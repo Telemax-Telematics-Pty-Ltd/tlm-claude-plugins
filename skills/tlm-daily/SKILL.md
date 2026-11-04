@@ -175,4 +175,7 @@ ClickUp calls: <count>
 - Never invent a cause for an overdue ticket. If the lead doesn't know, the action is "Remind the
   assignee".
 - Ticket links are markdown links with the ticket name as text, never bare URLs.
+- **Cite the source of truth; write test cases out.** A requirement or expected result names its source —
+  Figma node link + frame/layer, artifact link + section, or the quoted AC / PO comment. A test case is
+  never only `TC-007` / `#12`: give ID + title + expected result + source. → `ai/shared-fe/20-ticket-communication.md`
 - A rate-limit error mid-run → stop, report what was and wasn't applied, and don't retry.

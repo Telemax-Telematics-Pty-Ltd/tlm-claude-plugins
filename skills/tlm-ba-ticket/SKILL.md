@@ -163,6 +163,9 @@ unit-test descriptions.
   guess codebase, migration, or scope-of-change details.
 - **Confirm before creating or linking** — outward actions are team-visible.
 - Ticket body in `commentLanguage` (default English), whatever language the chat is in. No emojis.
+- **Cite the source of truth; write test cases out.** A requirement or expected result names its source —
+  Figma node link + frame/layer, artifact link + section, or the quoted AC / PO comment. A test scenario is
+  never only `TC-007` / `#12`: give ID + title + expected result + source. → `ai/shared-fe/20-ticket-communication.md`
 - Keep the template's headings and order even for sections you leave as placeholders — the
   developer relies on the shape.
 - Related/parent tickets: link the ids the user gave; if an id doesn't resolve, say so and ask —

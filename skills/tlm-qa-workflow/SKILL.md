@@ -100,6 +100,12 @@ ticket. It wraps the harness's first two stages and adds the ClickUp round-trip;
 vendored commands. Comments follow `tlm.tickets.commentLanguage` (default English, no emojis) — the
 checklist itself stays in the harness's language; translate faithfully and keep every `#<n>`.
 
+**Every comment cites its source and spells out what it refers to** (`ai/shared-fe/20-ticket-communication.md`):
+a question, answer or expected result names its source of truth — Figma node link + frame/layer, artifact
+link + section, or the quoted AC / PO comment; a `#<n>` or `TC-<n>` always carries its text (question, or
+test case title + expected result + source), never the bare number — the reader does not have the
+checklist or the Excel open.
+
 1. **Analyze.** Run `/qa-analyze <TICKET>` with its own entry gate. When the ticket is picked up before
    any code exists, the honest answer to its diff gate is "no code yet": the checklist then has no
    section G and no D6 rows — say so, don't fake them. If it takes the **no-spec branch**
@@ -146,6 +152,9 @@ checklist itself stays in the harness's language; translate faithfully and keep 
 - **Production is read-only.** `/qa-verify-prod` runs reviewed code only (no MCP) and only
   `@prod-safe` cases. Do not "just check one more thing" on prod via MCP.
 - **Bugs need one batched approval** before anything is created on ClickUp.
+- **A test case on ClickUp is written out, never a bare TC id** — ID + title + steps/precondition when
+  needed + expected result + its source (Figma node / artifact section / AC). Applies to bug bodies,
+  run results and replies alike.
 - **Do not edit the Defects sheet by hand-rolled logic** — append after the last TC ID row, key by
   TC ID not row number, and `Won't fix` (not row deletion) is the refusal signal. The harness's
   `write_defects.py` already encodes this; use it.

@@ -171,6 +171,9 @@ Show the draft with the coverage line and word count, and **wait for approval** 
 
 - Never post without the user's approval of the text.
 - Never change a ticket's status, assignee or fields — comments only.
+- **Cite the source of truth; write test cases out.** A requirement or expected result names its source —
+  Figma node link + frame/layer, artifact link + section, or the quoted AC / PO comment. A test case is
+  never only `TC-007` / `#12`: give ID + title + expected result + source. → `ai/shared-fe/20-ticket-communication.md`
 - Brief goes on the root, Rollup on the direct parent — never on the ticket being summarized in
   Rollup mode.
 - An id that does not resolve → say so and ask; never guess a parent.
