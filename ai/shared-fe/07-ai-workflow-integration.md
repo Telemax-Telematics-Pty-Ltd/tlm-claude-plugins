@@ -518,6 +518,7 @@ When working in this project, keep in mind:
       leaks into the artifact (conversation language ≠ artifact language) — see `18-working-language.md`
 - [ ] Ticket comments cite their source of truth (Figma node / artifact section / quoted AC) and spell out
       every test case referenced (ID + title + expected + source), never a bare `TC-007` — see `20-ticket-communication.md`
+- [ ] A PO Q&A lists each question with the decision dev built (no options), codes explained, "OK all / OK except …" — see `20-ticket-communication.md` §3
 - [ ] **Every pressable element has its affordances** — see §9a. Tailwind v4 does NOT give a
       `<button>` a pointer cursor; you have to ask for it
 - [ ] **No destructuring inside a function body** — see §9b. Props are the exception and stay

@@ -190,6 +190,9 @@ parent shows this slice's new state.
 - **Cite the source of truth; write test cases out.** A requirement or expected result names its source —
   Figma node link + frame/layer, artifact link + section, or the quoted AC / PO comment. A test case is
   never only `TC-007` / `#12`: give ID + title + expected result + source. → `ai/shared-fe/20-ticket-communication.md`
+- **PO Q&A = question + the decision dev built, never options.** Each item: plain question, "Dev decision:
+  …", an example if not obvious; item codes explained (`M` = Mileage…); ask for "OK all" / "OK except M2…".
+  No "A or B", no "(recommended)". → `ai/shared-fe/20-ticket-communication.md` §3
 - No emojis in plans or comments.
 - Never invent a ticket id. If the given id doesn't resolve, say so and ask.
 - Media is optional. Attach to the ticket, reference from a comment — never try to embed a file in

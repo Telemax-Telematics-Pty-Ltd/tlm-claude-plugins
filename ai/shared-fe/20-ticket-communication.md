@@ -1,4 +1,4 @@
-# Ticket communication — cite the source of truth, spell out every test case
+# Ticket communication — cite the source of truth, spell out every test case, ask the PO to confirm decisions
 
 Applies to every text that discusses requirements or tests on a tracker ticket (ClickUp comment,
 threaded reply, ticket description, QA question, bug report, rollup) **and** to the same discussion
@@ -34,6 +34,29 @@ At minimum: **ID + title + expected result + source**. Add precondition/steps wh
 them to re-run it. The same holds for checklist numbers (`#12`), bug ids and acceptance-criteria
 numbers: write what the item says next to its number.
 
+**3. A Q&A for the PO lists the decision dev made — never a menu of options.** When a change needs the
+PO's sign-off before release (behaviour the ticket left open, an edge case dev had to settle), each item
+is a short **question** plus the **decision dev has already built**, in plain language with an example
+when the behaviour is not obvious:
+
+```
+M2. After an alert, when does the next one fire?
+    Dev decision: the count restarts from 0; the next alert needs another N km within 7 days.
+    E.g. a 1000 km limit and a vehicle doing 2000 km/week → about 2 alerts/week.
+```
+
+- **One answer per item — the one in the code.** No "A or B?", no "Alternative: …", no
+  "(recommended)". If dev has not decided yet, decide (and build) first, then ask; the PO confirms or
+  overrides, they don't design.
+- **Label the item codes once.** A prefix per area (`M` = Mileage alert, `R` = Road Surface alert) and say
+  what the prefix means in the heading, so `M2` means something to a reader who never saw the list.
+- **Say how to reply and what it blocks.** Open with: reply **"OK all"**, or **"OK except M2, R5"** plus the
+  behaviour wanted instead — and that release waits on this reply.
+- **Keep "no action needed" apart.** Consequences the PO should know but not decide (existing rules
+  start firing, CS to be told) go under a separate *Notes* heading, each with who does what.
+- Put the Q&A in the **ticket description** (it is the current state, edited as answers come in), and a
+  short comment tagging the PO that points to it.
+
 ## Why
 
 The reader of a ticket comment — PO, QC, the next developer, the client — does not have the Excel,
@@ -42,6 +65,12 @@ before they can even agree or disagree, and a lookup against a sheet that has si
 lands on the wrong case. A requirement stated without its source can't be checked and gets argued from
 memory; quoting the Figma node / artifact section ends that argument in one read and lets anyone see
 when the design changed after the comment was written.
+
+A Q&A written as options hands the design back to the PO: they have to weigh trade-offs they did not
+build, the reply comes back as a third option nobody coded, and release slips while it is re-built. Bare
+codes (`M1`, `Q-A`) and engineering wording force the PO to ask what the question even is — one more
+round-trip before a "yes". Stating the built decision turns the round into one read and "OK all", and an
+override names the exact item to change.
 
 ## Examples
 
@@ -56,6 +85,11 @@ when the design changed after the comment was written.
 ❌ `The title should be bold.`
 ✅ `Title: Montserrat SemiBold 20 / 28 (Figma "Report header", node 12:345) — the ticket text says
    "bold", Figma wins.`
+
+❌ `Q-A. "Left unsealed" when the trip ends on gravel: own wording "Trip ended on an unsealed road"
+   (recommended), or one neutral wording "Unsealed stretch ended"?`
+✅ `R5. A trip ends while the vehicle is still on an unsealed road — what does the "left unsealed road"
+   alert say? Dev decision: its own wording, "Trip ended on an unsealed road — X km".`
 
 ## Exceptions
 
