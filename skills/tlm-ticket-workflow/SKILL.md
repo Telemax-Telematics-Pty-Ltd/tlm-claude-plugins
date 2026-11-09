@@ -175,6 +175,9 @@ reference them in a comment.
    Verify each upload succeeded. If one fails, report which file and continue with the rest — don't
    abort the sync over one attachment. Then post a final line: `Self-test evidence attached: a.mp4, b.png`.
 
+   **Telemax2, fix verified end to end:** the evidence is one before/after composite per ticket, not loose
+   screenshots → `ai/telemax2-knowledge/06-e2e-before-after-evidence.md`.
+
 **3. Move to `statuses.inReview`** — after confirming with the user.
 
 **4. Roll up to the parent.** If the ticket has a parent, run `/tlm-feature-brief` on it (Rollup mode) so the
