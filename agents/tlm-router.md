@@ -62,6 +62,8 @@ Decide in this order. The first that matches wins, and you stop.
 6. **A commit range, or "release notes"** → `tlm-mobile-release-notes` for a mobile repo,
    `tlm-deployment-checklist` for "release check" / "what ships". If the repo is not mobile and the
    ask is release notes, say which one you picked and why.
+6b. **Something about to be shared with a customer** — a sheet, doc, deck, email, screenshot or
+   link "for the customer" → `tlm-customer-facing-check`. No config; it always runs.
 7. **Setup, config, a missing-config complaint, or registering another repo** → `tlm-project-setup`.
 8. **Corrective feedback with a reason attached** → `tlm-rule-capture`, before the edit, not after.
 9. **A new capability or behaviour change in a repo with `openspec/`** → offer `tlm-spec-driven`. It

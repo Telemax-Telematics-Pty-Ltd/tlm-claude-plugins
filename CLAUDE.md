@@ -95,6 +95,11 @@ config):
   ticket (update directly or comment-tag the assignee), previews, then applies in one batch. Few MCP
   calls by design (ClickUp has a daily limit). Config `tlm.daily` (scope + the board's real status
   names), written by its own inline setup on the first run.
+- `tlm-customer-facing-check` — run over anything about to be shared with a Telemax customer (sheets,
+  CSVs, docs, PDFs, decks, emails, screenshots, links): removes supplier/platform names, other
+  customers' and internal data, hidden content per format; rewrites in plain English; writes a **new**
+  customer version (original untouched) and shares it online as view-only, never as a download. No
+  `tlm` config.
 - `tlm-mobile-release-notes` — commit range → plain-language notes → Slack draft (mobile projects only).
 - `tlm-deployment-checklist` — release check: tickets, services, migrations.
 - `tlm-qa-workflow` — bridge into the **QA harness** vendored at `vendor/telemax-qa-skill` (a copy of

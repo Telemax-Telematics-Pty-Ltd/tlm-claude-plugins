@@ -717,6 +717,12 @@
       "secrets": [],
       "ifMissing": "Requires the tickets capability with ClickUp; if the tracker is unreachable, stop and point to /tlm-project-setup. A missing tlm.daily block is NOT a stop: the skill asks for the scope inline, maps the board's real status names from one fetched ticket, and persists tlm.daily before running."
     },
+    "tlm-customer-facing-check": {
+      "mcp": [],
+      "config": [],
+      "secrets": [],
+      "ifMissing": "Always runs — it has no capability companion and reads no tlm config. Google Drive/Docs/Sheets/Slides access is only needed for its final share-online step; without it, hand back the scrubbed file and say it still has to be shared as a view-only link."
+    },
     "tlm-deployment-checklist": {
       "mcp": ["<the MCP for tlm.tickets.system>"],
       "config": ["tlm.tickets.*", "tlm.project.baseBranch"],
