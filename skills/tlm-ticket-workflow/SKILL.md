@@ -178,6 +178,9 @@ reference them in a comment.
    **Telemax2, fix verified end to end:** the evidence is one before/after composite per ticket, not loose
    screenshots → `ai/telemax2-knowledge/06-e2e-before-after-evidence.md`.
 
+   **Telemax2, before push or review:** tick the matching sections of
+   `ai/telemax2-knowledge/07-change-review-checklist.md` (server, jobs/email, Blazor, tests, docs, PR).
+
 **3. Move to `statuses.inReview`** — after confirming with the user.
 
 **4. Roll up to the parent.** If the ticket has a parent, run `/tlm-feature-brief` on it (Rollup mode) so the
