@@ -9,8 +9,10 @@ Usage:
 Each before/after pair becomes one row (before left, after right); several pairs stack top to bottom (e.g. the
 Alert and the Fleet Alert report of one bug). The title and captions go in a band above, so the image says which
 case it shows. When a screenshot has a sidecar `<name>.box.json` — a list of {"x", "y", "w", "h", "label"?} in that
-screenshot's pixels, written from Playwright's locator.boundingBox() — each box is drawn on it: red on before,
-green on after, to point at what changed. The result is scaled down to at most 2400 px wide so it uploads to
+screenshot's pixels, written from Playwright's locator.boundingBox() — each box is drawn on it as an outline only:
+red on before, green on after, to point at what changed. No text is ever drawn on a screenshot (a label above a box
+covered the very input it pointed at): the box labels go in the band above that column, "Boxed: Input · Suggestions",
+in the order of the sidecar. The result is scaled down to at most 2400 px wide so it uploads to
 ClickUp as one attachment. See ai/telemax2-knowledge/06-e2e-before-after-evidence.md.
 """
 import argparse
@@ -23,14 +25,16 @@ from PIL import Image, ImageDraw, ImageFont
 MAX_WIDTH = 2400
 GAP = 20
 LABEL_HEIGHT = 60
-BOX_WIDTH = 5
+LEGEND_HEIGHT = 36
+BOX_WIDTH = 4
 BEFORE_COLOUR = (200, 30, 30)
 AFTER_COLOUR = (20, 130, 60)
 
 
 def _font(size, bold=True):
-    names = ("Arial Bold.ttf", "DejaVuSans-Bold.ttf") if bold else ("Arial.ttf", "DejaVuSans.ttf")
-    for folder in ("/System/Library/Fonts/Supplemental/", "/usr/share/fonts/truetype/dejavu/"):
+    # macOS, Windows and Linux file names; without one, Pillow's default font makes the title and captions unreadable.
+    names = ("Arial Bold.ttf", "arialbd.ttf", "DejaVuSans-Bold.ttf") if bold else ("Arial.ttf", "arial.ttf", "DejaVuSans.ttf")
+    for folder in ("/System/Library/Fonts/Supplemental/", "C:/Windows/Fonts/", "/usr/share/fonts/truetype/dejavu/"):
         for name in names:
             try:
                 return ImageFont.truetype(folder + name, size)
@@ -49,20 +53,21 @@ def load_boxes(image_path):
 
 
 def draw_boxes(image, boxes, colour):
-    """Draws each {x, y, w, h, label?} box on a copy of the image, the label above the box."""
+    """Draws each {x, y, w, h} box as an outline on a copy of the image, inside the element's own edge: drawn outside,
+    it covers the label right above an input. Labels are not drawn here either: text on the screenshot covers what the
+    box points at (see `legend`)."""
     image = image.convert("RGB").copy()
     draw = ImageDraw.Draw(image)
-    font = _font(22)
     for box in boxes:
         x, y, w, h = (round(box[k]) for k in ("x", "y", "w", "h"))
-        pad = BOX_WIDTH + 2
-        draw.rectangle([x - pad, y - pad, x + w + pad, y + h + pad], outline=colour, width=BOX_WIDTH)
-        if box.get("label"):
-            ty = max(0, y - pad - 30)
-            tw = draw.textlength(box["label"], font=font)
-            draw.rectangle([x - pad, ty, x - pad + tw + 12, ty + 28], fill=colour)
-            draw.text((x - pad + 6, ty + 2), box["label"], fill="white", font=font)
+        draw.rectangle([x, y, x + w - 1, y + h - 1], outline=colour, width=BOX_WIDTH)  # Pillow draws the width inwards
     return image
+
+
+def legend(boxes):
+    """The line under a column's label naming its boxes, or None when no box has a label."""
+    labels = [b["label"] for b in boxes if b.get("label")]
+    return "Boxed: " + " · ".join(labels) if labels else None
 
 
 def _header(width, title, captions):
@@ -84,18 +89,23 @@ def _header(width, title, captions):
 def compose(pairs, before_label, after_label, title=None, captions=(), boxes=None):
     """Returns one image: an optional title band, then a labelled row per (before, after) pair of PIL images.
     `boxes` holds, per pair, the (before boxes, after boxes) to draw."""
-    font = _font(34)
+    font, legend_font = _font(34), _font(26, bold=False)
     rows = []
     for i, (before, after) in enumerate(pairs):
         before_boxes, after_boxes = boxes[i] if boxes else ([], [])
         before = draw_boxes(before, before_boxes, BEFORE_COLOUR)
         after = draw_boxes(after, after_boxes, AFTER_COLOUR)
-        row = Image.new("RGB", (before.width + GAP + after.width, max(before.height, after.height) + LABEL_HEIGHT), "white")
+        legends = (legend(before_boxes), legend(after_boxes))
+        top = LABEL_HEIGHT + (LEGEND_HEIGHT if any(legends) else 0)
+        row = Image.new("RGB", (before.width + GAP + after.width, max(before.height, after.height) + top), "white")
         draw = ImageDraw.Draw(row)
         draw.text((10, 12), before_label, fill=BEFORE_COLOUR, font=font)
         draw.text((before.width + GAP + 10, 12), after_label, fill=AFTER_COLOUR, font=font)
-        row.paste(before, (0, LABEL_HEIGHT))
-        row.paste(after, (before.width + GAP, LABEL_HEIGHT))
+        for x, text, colour in ((10, legends[0], BEFORE_COLOUR), (before.width + GAP + 10, legends[1], AFTER_COLOUR)):
+            if text:
+                draw.text((x, LABEL_HEIGHT - 4), text, fill=colour, font=legend_font)
+        row.paste(before, (0, top))
+        row.paste(after, (before.width + GAP, top))
         rows.append(row)
 
     width = max(r.width for r in rows)

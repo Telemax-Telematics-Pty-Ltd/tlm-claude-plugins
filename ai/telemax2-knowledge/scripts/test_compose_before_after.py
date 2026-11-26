@@ -3,6 +3,7 @@ import os
 import sys
 import tempfile
 import unittest
+import unittest.mock
 
 from PIL import Image
 
@@ -45,10 +46,26 @@ class ComposeBeforeAfterTests(unittest.TestCase):
 
         image = cba.compose([(white, white)], "B", "A", boxes=[(box, box)])
 
-        edge_y = cba.LABEL_HEIGHT + 80 - cba.BOX_WIDTH  # inside the top edge of the drawn rectangle
+        edge_y = cba.LABEL_HEIGHT + 80 + 1  # on the top edge, inside the element
         self.assertEqual(cba.BEFORE_COLOUR, image.getpixel((130, edge_y)))
         self.assertEqual(cba.AFTER_COLOUR, image.getpixel((300 + cba.GAP + 130, edge_y)))
         self.assertEqual((255, 255, 255), image.getpixel((130, cba.LABEL_HEIGHT + 100)), "the box is an outline")
+        self.assertEqual((255, 255, 255), image.getpixel((130, cba.LABEL_HEIGHT + 79)), "nothing above the element is covered")
+
+    def test_a_label_never_covers_the_screenshot_and_goes_in_the_band(self):
+        white = Image.new("RGB", (300, 200), "white")
+        labelled = [{"x": 100, "y": 80, "w": 60, "h": 40, "label": "Input"}]
+        plain = [{"x": 100, "y": 80, "w": 60, "h": 40}]
+
+        image = cba.compose([(white, white)], "B", "A", boxes=[(labelled, labelled)])
+        unlabelled = cba.compose([(white, white)], "B", "A", boxes=[(plain, plain)])
+
+        top = cba.LABEL_HEIGHT + cba.LEGEND_HEIGHT
+        self.assertEqual(unlabelled.height + cba.LEGEND_HEIGHT, image.height, "the legend adds a line to the band")
+        above_box = [image.getpixel((x, top + y)) for x in range(90, 200) for y in range(40, 80)]
+        self.assertTrue(all(p == (255, 255, 255) for p in above_box), "nothing is painted above the box")
+        self.assertEqual("Boxed: Input · Suggestions", cba.legend(labelled + [{"x": 0, "y": 0, "w": 1, "h": 1, "label": "Suggestions"}]))
+        self.assertIsNone(cba.legend(plain))
 
     def test_boxes_come_from_the_sidecar_next_to_the_screenshot(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -58,6 +75,24 @@ class ComposeBeforeAfterTests(unittest.TestCase):
             with open(os.path.join(tmp, "before-1-today.box.json"), "w", encoding="utf-8") as f:
                 json.dump([{"x": 1, "y": 2, "w": 3, "h": 4, "label": "Days included"}], f)
             self.assertEqual("Days included", cba.load_boxes(shot)[0]["label"])
+
+    def test_fonts_are_found_in_the_windows_font_folder(self):
+        tried = []
+        real_truetype = cba.ImageFont.truetype
+
+        def truetype(path, size, *args, **kwargs):
+            if not isinstance(path, str):  # Pillow's load_default() loads its built-in font through truetype()
+                return real_truetype(path, size, *args, **kwargs)
+            tried.append(path)
+            if path in ("C:/Windows/Fonts/arialbd.ttf", "C:/Windows/Fonts/arial.ttf"):
+                return ("font", path, size)
+            raise OSError(path)
+
+        with unittest.mock.patch.object(cba.ImageFont, "truetype", truetype):
+            self.assertEqual(("font", "C:/Windows/Fonts/arialbd.ttf", 36), cba._font(36))
+            self.assertEqual(("font", "C:/Windows/Fonts/arial.ttf", 26), cba._font(26, bold=False))
+        self.assertLess(tried.index("/System/Library/Fonts/Supplemental/Arial Bold.ttf"),
+                        tried.index("C:/Windows/Fonts/arialbd.ttf"), "macOS is still tried first")
 
     def test_cli_refuses_an_unpaired_image(self):
         with tempfile.TemporaryDirectory() as tmp:

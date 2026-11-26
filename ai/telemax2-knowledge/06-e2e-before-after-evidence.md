@@ -21,6 +21,13 @@ side by side, titled, captioned and with the changed area boxed. Never loose scr
     tile, the field: `locator.boundingBox()`) to a sidecar `<screenshot>.box.json`:
     `[{"x":…,"y":…,"w":…,"h":…,"label":"Days included"}]`. The composer draws it red on before, green on after.
     Box the same element on both sides; when it is gone after the fix (e.g. a hidden row), box where it was.
+  - **Box the input too.** When the case starts from something typed or picked (a search box, a filter, a form field),
+    box that control as well (`label: "Input"`), assert its value before the screenshot, and add the caption
+    `Input: "<value>" typed in <where>`: two result lists mean nothing without what produced them (TLM-6236).
+  - **Nothing is drawn over the screenshot.** The composer draws each box as an outline inside the element's own edge
+    and lists the box names in the band above each column ("Boxed: Input · Suggestions"). A label painted above a box,
+    or an outline drawn outside it, covered the field label and the typed value (TLM-6236). Zoom into every box of the
+    composite before posting: field labels, the typed value and neighbouring rows must read clearly.
 - **Compose** with `compose_before_after.py OUT.png BEFORE.png AFTER.png [BEFORE2 AFTER2 ...] --title … --caption …`
   (before left, after right; extra pairs stack, e.g. Alert and Fleet Alert). The script ships with this rule at
   `ai/telemax2-knowledge/scripts/compose_before_after.py` under the rules root (Telemax2 also keeps a copy at
